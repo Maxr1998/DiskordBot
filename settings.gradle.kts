@@ -1,0 +1,13 @@
+enableFeaturePreview("VERSION_CATALOGS")
+
+rootProject.name = "DiskordBot"
+
+pluginManagement {
+    val kotlinVersion: String by settings
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace?.startsWith("org.jetbrains.kotlin") == true)
+                useVersion(kotlinVersion)
+        }
+    }
+}

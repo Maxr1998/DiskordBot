@@ -1,0 +1,75 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+allprojects {
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+    }
+
+    tasks.wrapper {
+        distributionType = Wrapper.DistributionType.ALL
+    }
+}
+
+plugins {
+    application
+    kotlin(Plugins.kotlinJvm)
+    kotlin(Plugins.serialization)
+    id(Plugins.shadow) version Plugins.Versions.shadow
+    id(Plugins.dependencyUpdates) version Plugins.Versions.dependencyUpdatesPlugin
+}
+
+val applicationName = "diskord-bot"
+group = "de.maxr1998"
+version = "1.0.0"
+
+dependencies {
+    // Core
+    implementation(libs.coroutines)
+    implementation(libs.diskord)
+
+    // Logging
+    implementation(libs.bundles.logging)
+}
+
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_16.toString()
+            @Suppress("SuspiciousCollectionReassignment")
+            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
+        }
+    }
+
+    withType<ShadowJar> {
+        archiveBaseName.set(applicationName)
+        archiveVersion.set(project.version as String)
+        append("META-INF/LICENSE")
+        append("META-INF/LICENSE.txt")
+        append("META-INF/NOTICE")
+        append("META-INF/NOTICE.txt")
+    }
+
+    // Configure dependency updates task
+    withType<DependencyUpdatesTask> {
+        gradleReleaseChannel = GradleReleaseChannel.CURRENT.id
+        rejectVersionIf {
+            val candidateType = classifyVersion(candidate.version)
+            val currentType = classifyVersion(currentVersion)
+
+            val accept = when (candidateType) {
+                // Always accept stable updates
+                VersionType.STABLE -> true
+                // Accept milestone updates for current milestone and unstable
+                VersionType.MILESTONE -> currentType != VersionType.STABLE
+                // Only accept unstable for current unstable
+                VersionType.UNSTABLE -> currentType == VersionType.UNSTABLE
+            }
+
+            !accept
+        }
+    }
+}

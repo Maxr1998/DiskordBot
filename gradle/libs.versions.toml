@@ -1,0 +1,14 @@
+[versions]
+coroutines = "1.5.0"
+diskord = "2.0.0-SNAPSHOT"
+kotlinLogging = "2.0.8"
+logback = "1.2.3"
+
+[libraries]
+coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+diskord = { module = "com.jessecorbett:diskord-bot", version.ref = "diskord" }
+kotlinLogging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlinLogging" }
+logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+
+[bundles]
+logging = ["kotlinLogging", "logback"]
