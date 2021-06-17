@@ -33,7 +33,9 @@ application {
 dependencies {
     // Core
     implementation(libs.coroutines)
-    implementation(libs.diskord)
+    implementation(libs.diskord) {
+        exclude("org.slf4j", "slf4j-simple")
+    }
 
     // Logging
     implementation(libs.bundles.logging)
