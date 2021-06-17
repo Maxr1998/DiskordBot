@@ -26,6 +26,10 @@ val applicationName = "diskord-bot"
 group = "de.maxr1998"
 version = "1.0.0"
 
+application {
+    mainClass.set("de.maxr1998.diskord.MainKt")
+}
+
 dependencies {
     // Core
     implementation(libs.coroutines)
