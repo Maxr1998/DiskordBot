@@ -3,6 +3,7 @@ package de.maxr1998.diskord
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
+import com.jessecorbett.diskord.util.isFromBot
 import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
@@ -22,7 +23,7 @@ class DynamicCommandsModule(private val config: Config) {
     }
 
     private suspend fun BotContext.handleMessage(message: Message) {
-        if (!message.content.startsWith(Constants.COMMAND_PREFIX)) {
+        if (!message.content.startsWith(Constants.COMMAND_PREFIX) || message.isFromBot) {
             return
         }
 
