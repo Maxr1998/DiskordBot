@@ -1,0 +1,7 @@
+.git
+.idea
+
+build
+config.json*
+Dockerfile
+gradlew.bat
