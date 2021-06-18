@@ -18,6 +18,8 @@ class UrlNormalizerTests : StringSpec({
     "Twitter tests" {
         forAll(
             row("$TW_TEST_URL?format=jpg&name=large"),
+            row("$TW_TEST_URL?format=jpg&name=small"),
+            row("$TW_TEST_URL?format=jpg&name=500x500"),
             row("$TW_TEST_URL?format=jpg&name=orig"),
             row("$TW_TEST_URL.jpg?name=large"),
             row("$TW_TEST_URL.jpg:large"),

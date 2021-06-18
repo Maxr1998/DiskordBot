@@ -5,7 +5,7 @@ object UrlNormalizer {
     const val PINTEREST_LINK_BASE = "https://i.pinimg.com"
 
     private val replacements = listOf(
-        Regex("""($TWITTER_LINK_BASE/\w+)(?:\?format=|\.)([a-z]+)(?:[&?]name=|:)[a-z]+""") to "$1?format=$2&name=orig",
+        Regex("""($TWITTER_LINK_BASE/\w+)(?:\?format=|\.)([a-z]+)(?:[&?]name=|:)(?:[a-z]+|\d+x\d+)""") to "$1?format=$2&name=orig",
         Regex("""($PINTEREST_LINK_BASE)/\d+x/([a-f\d]{2}/[a-f\d]{2}/[a-f\d]{2}/[a-f\d]{32}\.[a-z]+)""") to "$1/originals/$2",
     )
 
