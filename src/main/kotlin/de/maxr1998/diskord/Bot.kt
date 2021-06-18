@@ -153,7 +153,10 @@ class Bot(private val configFile: File) {
             return
         }
 
-        val args = message.content.split(" ", limit = 3).drop(1)
+        val args = message.content
+            .replace("""\S+""", " ")
+            .split(" ", limit = 3)
+            .drop(1)
         val command = args.getOrNull(0)?.trim()
         val repliedMessage = message.reference?.messageId
 
