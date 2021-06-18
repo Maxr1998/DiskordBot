@@ -177,11 +177,14 @@ class Bot(private val configFile: File) {
             return
         }
 
+        // Normalize URLs
+        val normalizedContent = UrlNormalizer.normalizeUrls(content)
+
         // Add content to commands map
-        if (commandEntries.add(content)) {
+        if (commandEntries.add(normalizedContent)) {
             message.react(config.getAckEmoji())
 
-            logger.debug("${sender.username} added $content to $command")
+            logger.debug("${sender.username} added $normalizedContent to $command")
         } else {
             message.respond("This content already exists, try a different one!")
         }
