@@ -12,6 +12,7 @@ import com.jessecorbett.diskord.util.words
 import de.maxr1998.diskord.Command.ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
@@ -109,15 +110,21 @@ class Bot(private val configFile: File) {
         }
 
         val args = message.words.drop(1)
-        if (args.size != 2) {
+        if (args.size !in 1..2) {
             message.channel.showHelp()
             return
         }
 
         val mode = args[0]
-        val command = args[1]
+        val command = args.getOrNull(1)
+
         when (mode) {
             AUTO_RESPONDER_MODE_ADD -> {
+                if (command == null) {
+                    message.channel.showHelp()
+                    return
+                }
+
                 if (config.commands.containsKey(command)) {
                     message.respond("Auto-responder for '$command' already exists")
                     return
@@ -128,7 +135,25 @@ class Bot(private val configFile: File) {
                 message.respond("Successfully added auto-responder for '$command'")
                 logger.debug("${sender.username} added auto-responder $command")
             }
+            AUTO_RESPONDER_MODE_LIST -> {
+                if (args.size != 1) {
+                    message.channel.showHelp()
+                    return
+                }
+
+                val commands = config.commands.keys.sorted()
+
+                message.replyEmbed {
+                    title = "Available auto-responders"
+                    description = commands.joinToString("\n") { cmd -> "- ` $cmd `" }
+                }
+            }
             in AUTO_RESPONDER_MODE_REMOVE -> {
+                if (command == null) {
+                    message.channel.showHelp()
+                    return
+                }
+
                 if (config.commands.remove(command) == null) {
                     return
                 }

@@ -14,6 +14,7 @@ object Command {
     const val AUTO_RESPONDER = "autoresponder"
     const val AUTO_RESPONDER_SHORT = "ar"
     const val AUTO_RESPONDER_MODE_ADD = "add"
+    const val AUTO_RESPONDER_MODE_LIST = "list"
     val AUTO_RESPONDER_MODE_REMOVE = arrayOf("remove", "rm")
 
     const val ADD = "add"
