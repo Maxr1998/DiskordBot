@@ -26,8 +26,8 @@ class UrlNormalizerTests : StringSpec({
         }
     }
     "Pinterest tests" {
-        val input = "${UrlNormalizer.PINTEREST_LINK_BASE}/123x/ab/cd/ef/abcdef000000000000000000000000000000"
-        val result = "${UrlNormalizer.PINTEREST_LINK_BASE}/originals/ab/cd/ef/abcdef000000000000000000000000000000"
+        val input = "${UrlNormalizer.PINTEREST_LINK_BASE}/123x/ab/cd/ef/abcdef00000000000000000000000000.jpg"
+        val result = "${UrlNormalizer.PINTEREST_LINK_BASE}/originals/ab/cd/ef/abcdef00000000000000000000000000.jpg"
 
         UrlNormalizer.normalizeUrls(input) shouldBe result
     }
