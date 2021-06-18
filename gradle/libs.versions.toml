@@ -1,5 +1,5 @@
 [versions]
-coroutines = "1.4.3"
+coroutines = "1.5.0"
 diskord = "2.0.0"
 kotlinLogging = "2.0.8"
 logback = "1.2.3"
