@@ -145,7 +145,9 @@ class Bot(private val configFile: File) {
 
                 message.replyEmbed {
                     title = "Available auto-responders"
-                    description = commands.joinToString("\n") { cmd -> "- ` $cmd `" }
+                    description = commands.joinToString("\n") { cmd ->
+                        "\u2022 ` $cmd ` - ${config.commands[cmd]?.size ?: 0} entries"
+                    }
                 }
             }
             in AUTO_RESPONDER_MODE_REMOVE -> {
