@@ -1,6 +1,6 @@
 [versions]
 coroutines = "1.4.3"
-diskord = "2.0.0-SNAPSHOT"
+diskord = "2.0.0"
 kotlinLogging = "2.0.8"
 logback = "1.2.3"
 kotest = "4.6.0"
