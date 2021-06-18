@@ -39,6 +39,7 @@ dependencies {
 
     // Logging
     implementation(libs.bundles.logging)
+    testImplementation(libs.bundles.kotest)
 }
 
 tasks {
@@ -57,6 +58,10 @@ tasks {
         append("META-INF/LICENSE.txt")
         append("META-INF/NOTICE")
         append("META-INF/NOTICE.txt")
+    }
+
+    withType<Test> {
+        useJUnitPlatform()
     }
 
     // Configure dependency updates task
