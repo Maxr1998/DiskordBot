@@ -261,7 +261,7 @@ class Bot(private val configFile: File) {
         // Start new persistence job
         persistJob = coroutineScope.launch {
             // Delay writing config by 30 seconds
-            delay(10 * 1000)
+            delay(30 * 1000)
 
             ConfigHelpers.persistConfig(configFile, config)
         }
