@@ -185,17 +185,21 @@ class Bot(private val configFile: File) {
             .split(" ", limit = 3)
             .drop(1)
         val command = args.getOrNull(0)?.trim()
-        val repliedMessage = message.reference?.messageId
 
-        val content = when {
-            repliedMessage != null && args.size == 1 -> {
-                message.channel.getMessage(repliedMessage).content.trim()
+        val entries = when (args.size) {
+            1 -> {
+                // Handle message attachments or replied message attachments or content
+                val repliedMessage = message.reference?.messageId?.let { id -> message.channel.getMessage(id) }
+                message.attachmentUrlsOrNull
+                    ?: repliedMessage?.attachmentUrlsOrNull
+                    ?: repliedMessage?.let { msg -> wrapListIfNotEmpty(msg.content) }
+                    ?: emptyList()
             }
-            args.size == 2 -> args[1].trim()
-            else -> null
+            2 -> wrapListIfNotEmpty(args[1])
+            else -> emptyList()
         }
 
-        if (command == null || content == null || content.isEmpty()) {
+        if (command == null || entries.isEmpty()) {
             message.channel.showHelp()
             return
         }
@@ -208,13 +212,14 @@ class Bot(private val configFile: File) {
         }
 
         // Normalize URLs
-        val normalizedContent = UrlNormalizer.normalizeUrls(content)
+        val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
 
         // Add content to commands map
-        if (commandEntries.add(normalizedContent)) {
+        if (commandEntries.addAll(normalizedEntries)) {
             message.react(config.getAckEmoji())
 
-            logger.debug("${sender.username} added $normalizedContent to $command")
+            val entriesString = normalizedEntries.joinToString(separator = ",", prefix = "[", postfix = "]")
+            logger.debug("${sender.username} added $entriesString to $command")
         } else {
             message.respond("This content already exists, try a different one!")
         }
