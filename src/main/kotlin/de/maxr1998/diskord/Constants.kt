@@ -13,9 +13,9 @@ object Command {
     const val PROMOTE_SHORT = "p"
     const val AUTO_RESPONDER = "autoresponder"
     const val AUTO_RESPONDER_SHORT = "ar"
-    const val AUTO_RESPONDER_MODE_ADD = "add"
-    const val AUTO_RESPONDER_MODE_LIST = "list"
-    val AUTO_RESPONDER_MODE_REMOVE = arrayOf("remove", "rm")
+    val AUTO_RESPONDER_MODE_ADD = arrayOf("add", "create", "new")
+    val AUTO_RESPONDER_MODE_LIST = arrayOf("list", "ls")
+    val AUTO_RESPONDER_MODE_REMOVE = arrayOf("remove", "rm", "delete")
 
     const val ADD = "add"
     const val HELP = "help"

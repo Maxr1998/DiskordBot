@@ -119,7 +119,7 @@ class Bot(private val configFile: File) {
         val command = args.getOrNull(1)
 
         when (mode) {
-            AUTO_RESPONDER_MODE_ADD -> {
+            in AUTO_RESPONDER_MODE_ADD -> {
                 if (command == null) {
                     message.channel.showHelp()
                     return
@@ -135,7 +135,7 @@ class Bot(private val configFile: File) {
                 message.respond("Successfully added auto-responder for '$command'")
                 logger.debug("${sender.username} added auto-responder $command")
             }
-            AUTO_RESPONDER_MODE_LIST -> {
+            in AUTO_RESPONDER_MODE_LIST -> {
                 if (args.size != 1) {
                     message.channel.showHelp()
                     return
@@ -230,14 +230,17 @@ class Bot(private val configFile: File) {
         fields = mutableListOf(
             EmbedField(
                 name = "Add auto-responder - *admin only*",
-                value = """`$COMMAND_PREFIX$AUTO_RESPONDER $AUTO_RESPONDER_MODE_ADD <command>`
-                          |`$COMMAND_PREFIX$AUTO_RESPONDER_SHORT $AUTO_RESPONDER_MODE_ADD <command>`""".trimMargin(),
+                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_ADD[0]} <command>`""",
+                inline = false,
+            ),
+            EmbedField(
+                name = "Show auto-responders - *admin only*",
+                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]} <command>`""",
                 inline = false,
             ),
             EmbedField(
                 name = "Remove auto-responder - *admin only*",
-                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_REMOVE[0]} <command>`
-                          |`$COMMAND_PREFIX$AUTO_RESPONDER_SHORT ${AUTO_RESPONDER_MODE_REMOVE[1]} <command>`""".trimMargin(),
+                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_REMOVE[0]} <command>`""",
                 inline = false,
             ),
             EmbedField(
