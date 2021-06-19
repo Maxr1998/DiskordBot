@@ -143,7 +143,7 @@ class Bot(private val configFile: File) {
 
                 val commands = config.commands.keys.sorted()
 
-                message.replyEmbed {
+                message.respondEmbed {
                     title = "Available auto-responders"
                     description = commands.joinToString("\n") { cmd ->
                         "\u2022 ` $cmd ` - ${config.commands[cmd]?.size ?: 0} entries"
