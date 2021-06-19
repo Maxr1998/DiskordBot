@@ -17,4 +17,6 @@ data class Config(
     val commands: MutableMap<String, MutableSet<String>> = HashMap(),
     @SerialName("ack_emoji_id")
     val ackEmojiId: String? = null,
+    @SerialName("bot_status")
+    var botStatus: String? = null,
 )

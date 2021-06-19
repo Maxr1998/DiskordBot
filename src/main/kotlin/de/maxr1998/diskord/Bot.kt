@@ -4,6 +4,7 @@ import com.jessecorbett.diskord.api.channel.ChannelClient
 import com.jessecorbett.diskord.api.channel.EmbedField
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
+import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.bot.classicCommands
@@ -52,12 +53,20 @@ class Bot(private val configFile: File) {
                 command(AUTO_RESPONDER_SHORT) { message -> autoResponder(message) }
                 command(ADD) { message -> addEntry(message) }
 
+                // Status command
+                command(Command.STATUS) { message -> setStatus(this@bot, message) }
+
                 // Help
                 command(Command.HELP) { message -> message.channel.showHelp() }
             }
 
             // Dynamic commands
             DynamicCommandsModule(config).install(this)
+
+            coroutineScope.launch {
+                // Set initial status
+                refreshStatus()
+            }
         }
 
         // Keep application alive
@@ -220,6 +229,28 @@ class Bot(private val configFile: File) {
         }
 
         postPersistConfig()
+    }
+
+    private suspend fun BotContext.setStatus(botBase: BotBase, message: Message) {
+        // Only owner and admins can set the status
+        val sender = message.author
+        if (sender.id != config.ownerId && sender.id !in config.adminIds) {
+            message.reply("Insufficient permissions")
+            return
+        }
+
+        config.botStatus = when (val status = message.content.substringAfter(" ").trim()) {
+            Command.STATUS_MODE_CLEAR -> null
+            else -> status
+        }
+
+        botBase.refreshStatus()
+
+        postPersistConfig()
+    }
+
+    private suspend fun BotBase.refreshStatus() {
+        config.botStatus?.let { status -> setStatus(status) }
     }
 
     private suspend fun ChannelClient.showHelp() = sendEmbed {
