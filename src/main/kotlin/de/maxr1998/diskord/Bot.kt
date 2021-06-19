@@ -119,7 +119,7 @@ class Bot(private val configFile: File) {
         val command = args.getOrNull(1)
 
         when (mode) {
-            AUTO_RESPONDER_MODE_ADD -> {
+            in AUTO_RESPONDER_MODE_ADD -> {
                 if (command == null) {
                     message.channel.showHelp()
                     return
@@ -135,7 +135,7 @@ class Bot(private val configFile: File) {
                 message.respond("Successfully added auto-responder for '$command'")
                 logger.debug("${sender.username} added auto-responder $command")
             }
-            AUTO_RESPONDER_MODE_LIST -> {
+            in AUTO_RESPONDER_MODE_LIST -> {
                 if (args.size != 1) {
                     message.channel.showHelp()
                     return
