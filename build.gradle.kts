@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.diskord) {
         exclude("org.slf4j", "slf4j-simple")
     }
+    implementation(libs.bundles.ktor)
 
     // Logging
     implementation(libs.bundles.logging)

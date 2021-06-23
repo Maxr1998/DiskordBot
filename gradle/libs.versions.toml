@@ -5,16 +5,21 @@ diskord = "2.0.0"
 kotlinLogging = "2.0.8"
 logback = "1.2.3"
 kotest = "4.6.0"
+ktor = "1.6.0"
 
 [libraries]
 koin = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 diskord = { module = "com.jessecorbett:diskord-bot", version.ref = "diskord" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-client-serialization-jvm = { group = "io.ktor", name = "ktor-client-serialization-jvm", version.ref = "ktor" }
+ktor-client-json = { group = "io.ktor", name = "ktor-client-json", version.ref = "ktor" }
 kotlinLogging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlinLogging" }
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
 kotest-junitRunner = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
 kotest-property = { group = "io.kotest", name = "kotest-property", version.ref = "kotest" }
 
 [bundles]
+ktor = ["ktor-client-cio", "ktor-client-serialization-jvm", "ktor-client-json"]
 logging = ["kotlinLogging", "logback"]
 kotest = ["kotest-junitRunner", "kotest-property"]
