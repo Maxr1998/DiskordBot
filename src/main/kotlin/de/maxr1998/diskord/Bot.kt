@@ -24,30 +24,22 @@ import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.attachmentUrlsOrNull
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.wrapListIfNotEmpty
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.io.File
 
 val logger = KotlinLogging.logger {}
 
-class Bot(private val configFile: File) : KoinComponent {
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+class Bot : KoinComponent {
     private val configHelpers: ConfigHelpers by inject()
 
     private lateinit var config: Config
-    private var persistJob: Job? = null
 
     suspend fun run() {
         logger.debug("Starting Diskord bot…")
 
-        config = configHelpers.readConfig(configFile)
+        config = configHelpers.readConfig()
 
         logger.debug("Successfully loaded config.")
 
@@ -90,7 +82,7 @@ class Bot(private val configFile: File) : KoinComponent {
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to admin")
         }
 
-        postPersistConfig()
+        configHelpers.postPersistConfig(config)
     }
 
     private suspend fun BotContext.promoteManager(message: Message) {
@@ -105,7 +97,7 @@ class Bot(private val configFile: File) : KoinComponent {
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to manager")
         }
 
-        postPersistConfig()
+        configHelpers.postPersistConfig(config)
     }
 
     private suspend fun BotContext.autoResponder(message: Message) {
@@ -172,7 +164,7 @@ class Bot(private val configFile: File) : KoinComponent {
             }
         }
 
-        postPersistConfig()
+        configHelpers.postPersistConfig(config)
     }
 
     private suspend fun BotContext.addEntry(message: Message) {
@@ -223,7 +215,7 @@ class Bot(private val configFile: File) : KoinComponent {
             message.respond("This content already exists, try a different one!")
         }
 
-        postPersistConfig()
+        configHelpers.postPersistConfig(config)
     }
 
     private suspend fun BotContext.removeEntry(message: Message) {
@@ -259,7 +251,7 @@ class Bot(private val configFile: File) : KoinComponent {
             message.respond("Content not found, nothing was removed.")
         }
 
-        postPersistConfig()
+        configHelpers.postPersistConfig(config)
     }
 
     private suspend fun ChannelClient.showHelp() = sendEmbed {
@@ -318,18 +310,5 @@ class Bot(private val configFile: File) : KoinComponent {
             return false
         }
         return true
-    }
-
-    private fun postPersistConfig() {
-        // Cancel current
-        persistJob?.cancel()
-
-        // Start new persistence job
-        persistJob = coroutineScope.launch {
-            // Delay writing config by 30 seconds
-            delay(30 * 1000)
-
-            configHelpers.persistConfig(configFile, config)
-        }
     }
 }

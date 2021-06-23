@@ -7,6 +7,7 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import java.io.File
 import io.ktor.client.features.json.Json as KtorJsonFeature
 
 
@@ -30,5 +31,7 @@ val appModule = module {
         }
     }
 
-    single { ConfigHelpers(get()) }
+    single {
+        ConfigHelpers(configFile = File(Constants.CONFIG_FILE_NAME), get())
+    }
 }
