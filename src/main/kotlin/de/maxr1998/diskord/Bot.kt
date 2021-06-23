@@ -25,19 +25,23 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.io.File
 
 val logger = KotlinLogging.logger {}
 
-class Bot(private val configFile: File) {
+class Bot(private val configFile: File) : KoinComponent {
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val configHelpers: ConfigHelpers by inject()
+
     private lateinit var config: Config
     private var persistJob: Job? = null
 
     suspend fun run() {
         logger.debug("Starting Diskord bot…")
 
-        config = ConfigHelpers.readConfig(configFile)
+        config = configHelpers.readConfig(configFile)
 
         logger.debug("Successfully loaded config.")
 
@@ -319,7 +323,7 @@ class Bot(private val configFile: File) {
             // Delay writing config by 30 seconds
             delay(30 * 1000)
 
-            ConfigHelpers.persistConfig(configFile, config)
+            configHelpers.persistConfig(configFile, config)
         }
     }
 }

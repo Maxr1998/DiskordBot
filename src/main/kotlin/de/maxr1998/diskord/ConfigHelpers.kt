@@ -2,19 +2,12 @@ package de.maxr1998.diskord
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.io.File
 
-@OptIn(ExperimentalSerializationApi::class)
-object ConfigHelpers {
-    private val json = Json {
-        encodeDefaults = true
-        ignoreUnknownKeys = true
-        prettyPrint = true
-        prettyPrintIndent = "  "
-    }
-
+class ConfigHelpers(
+    private val json: Json,
+) {
     suspend fun readConfig(file: File): Config = withContext(Dispatchers.IO) {
         val configString = file.readText()
         json.decodeFromString(Config.serializer(), configString)
