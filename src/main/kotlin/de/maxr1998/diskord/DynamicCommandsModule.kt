@@ -4,6 +4,7 @@ import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
+import de.maxr1998.diskord.config.Config
 import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom

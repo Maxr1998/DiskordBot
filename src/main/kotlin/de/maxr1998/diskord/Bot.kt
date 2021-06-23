@@ -18,6 +18,12 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.REMOVE_SHORT
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
+import de.maxr1998.diskord.config.Config
+import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.utils.UrlNormalizer
+import de.maxr1998.diskord.utils.attachmentUrlsOrNull
+import de.maxr1998.diskord.utils.getAckEmoji
+import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

@@ -1,5 +1,6 @@
 package de.maxr1998.diskord
 
+import de.maxr1998.diskord.config.ConfigHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.json.serializer.KotlinxSerializer

@@ -1,4 +1,4 @@
-package de.maxr1998.diskord
+package de.maxr1998.diskord.utils
 
 object UrlNormalizer {
     const val TWITTER_LINK_BASE = "https://pbs.twimg.com/media"

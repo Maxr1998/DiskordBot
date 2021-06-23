@@ -1,4 +1,4 @@
-import de.maxr1998.diskord.UrlNormalizer
+import de.maxr1998.diskord.utils.UrlNormalizer
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.data.forAll
 import io.kotest.data.row

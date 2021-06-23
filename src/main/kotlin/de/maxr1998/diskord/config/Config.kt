@@ -1,4 +1,4 @@
-package de.maxr1998.diskord
+package de.maxr1998.diskord.config
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
