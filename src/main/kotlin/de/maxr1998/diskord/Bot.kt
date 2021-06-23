@@ -66,10 +66,7 @@ class Bot(private val configFile: File) {
 
     private suspend fun BotContext.promoteAdmin(message: Message) {
         // Admins can only be promoted by the owner
-        if (message.author.id != config.ownerId) {
-            message.reply("Insufficient permissions")
-            return
-        }
+        if (!checkOwner(message)) return
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -84,11 +81,7 @@ class Bot(private val configFile: File) {
 
     private suspend fun BotContext.promoteManager(message: Message) {
         // Managers can only be promoted by the owner and admins
-        val sender = message.author.id
-        if (sender != config.ownerId && sender !in config.adminIds) {
-            message.reply("Insufficient permissions")
-            return
-        }
+        if (!checkAdmin(message)) return
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -103,11 +96,7 @@ class Bot(private val configFile: File) {
 
     private suspend fun BotContext.autoResponder(message: Message) {
         // Only owner and admins can add new auto-responders
-        val sender = message.author
-        if (sender.id != config.ownerId && sender.id !in config.adminIds) {
-            message.reply("Insufficient permissions")
-            return
-        }
+        if (!checkAdmin(message)) return
 
         val args = message.words.drop(1)
         if (args.size !in 1..2) {
@@ -133,7 +122,7 @@ class Bot(private val configFile: File) {
                 config.commands[command] = HashSet()
 
                 message.respond("Successfully added auto-responder for '$command'")
-                logger.debug("${sender.username} added auto-responder $command")
+                logger.debug("${message.author.username} added auto-responder $command")
             }
             in AUTO_RESPONDER_MODE_LIST -> {
                 if (args.size != 1) {
@@ -161,7 +150,7 @@ class Bot(private val configFile: File) {
                 }
 
                 message.respond("Successfully removed auto-responder for '$command'")
-                logger.debug("${sender.username} removed auto-responder $command")
+                logger.debug("${message.author.username} removed auto-responder $command")
             }
             else -> {
                 message.channel.showHelp()
@@ -174,11 +163,7 @@ class Bot(private val configFile: File) {
 
     private suspend fun BotContext.addEntry(message: Message) {
         // Only owner, admins and managers can add new entries
-        val sender = message.author
-        if (sender.id != config.ownerId && sender.id !in config.adminIds && sender.id !in config.managerIds) {
-            message.reply("Insufficient permissions")
-            return
-        }
+        if (!checkManager(message)) return
 
         val args = message.content
             .replace("""\S+""", " ")
@@ -219,7 +204,7 @@ class Bot(private val configFile: File) {
             message.react(config.getAckEmoji())
 
             val entriesString = normalizedEntries.joinToString(separator = ",", prefix = "[", postfix = "]")
-            logger.debug("${sender.username} added $entriesString to $command")
+            logger.debug("${message.author.username} added $entriesString to $command")
         } else {
             message.respond("This content already exists, try a different one!")
         }
@@ -257,6 +242,32 @@ class Bot(private val configFile: File) {
                 inline = false,
             ),
         )
+    }
+
+    private suspend fun BotContext.checkOwner(message: Message): Boolean {
+        if (message.author.id != config.ownerId) {
+            message.reply("Insufficient permissions")
+            return false
+        }
+        return true
+    }
+
+    private suspend fun BotContext.checkAdmin(message: Message): Boolean {
+        val authorId = message.author.id
+        if (authorId != config.ownerId && authorId !in config.adminIds) {
+            message.reply("Insufficient permissions")
+            return false
+        }
+        return true
+    }
+
+    private suspend fun BotContext.checkManager(message: Message): Boolean {
+        val authorId = message.author.id
+        if (authorId != config.ownerId && authorId !in config.adminIds && authorId !in config.managerIds) {
+            message.reply("Insufficient permissions")
+            return false
+        }
+        return true
     }
 
     private fun postPersistConfig() {
