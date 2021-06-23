@@ -32,6 +32,7 @@ application {
 
 dependencies {
     // Core
+    implementation(libs.koin)
     implementation(libs.coroutines)
     implementation(libs.diskord) {
         exclude("org.slf4j", "slf4j-simple")

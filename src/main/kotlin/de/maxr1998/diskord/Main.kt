@@ -1,9 +1,12 @@
 package de.maxr1998.diskord
 
+import org.koin.core.context.startKoin
 import java.io.File
 
 suspend fun main() {
-    val configFile = File(Constants.CONFIG_FILE_NAME)
+    startKoin {
+        modules(appModule)
+    }
 
-    Bot(configFile).run()
+    Bot(configFile = File(Constants.CONFIG_FILE_NAME)).run()
 }
