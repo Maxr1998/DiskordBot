@@ -17,9 +17,11 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.REMOVE_SHORT
+import de.maxr1998.diskord.Command.RESOLVE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.attachmentUrlsOrNull
 import de.maxr1998.diskord.utils.getAckEmoji
@@ -31,6 +33,7 @@ val logger = KotlinLogging.logger {}
 
 class Bot(
     private val configHelpers: ConfigHelpers,
+    private val imageResolver: ImageResolver,
 ) {
     private lateinit var config: Config
 
@@ -55,6 +58,9 @@ class Bot(
                 command(ADD) { message -> addEntry(message) }
                 command(REMOVE) { message -> removeEntry(message) }
                 command(REMOVE_SHORT) { message -> removeEntry(message) }
+
+                // Helper commands
+                command(RESOLVE) { message -> resolve(message) }
 
                 // Help
                 command(Command.HELP) { message -> message.channel.showHelp() }
@@ -250,6 +256,28 @@ class Bot(
         }
 
         configHelpers.postPersistConfig(config)
+    }
+
+    private suspend fun BotContext.resolve(message: Message) {
+        // Only managers may use the bot to resolve links
+        if (!checkManager(message)) return
+
+        val content = message.content
+            .removePrefix("$COMMAND_PREFIX$RESOLVE ")
+            .replace("""\S+""", " ")
+
+        val urls = imageResolver.resolve(content)
+
+        if (urls.isNotEmpty()) {
+            message.respond(urls.joinToString(
+                prefix = "Successfully downloaded ${urls.size} images:\n",
+                separator = "\n",
+            ) { url ->
+                "${config.fileServerBaseUrl.orEmpty()}/$url"
+            })
+        } else {
+            message.respond("Couldn't process content, please ensure your query is correct.")
+        }
     }
 
     private suspend fun ChannelClient.showHelp() = sendEmbed {

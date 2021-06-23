@@ -25,6 +25,9 @@ object Command {
     const val REMOVE = "remove"
     const val REMOVE_SHORT = "rm"
 
+    // Helper commands
+    const val RESOLVE = "resolve"
+
     // Help
     const val HELP = "help"
 }
