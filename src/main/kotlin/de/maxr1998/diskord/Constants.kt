@@ -18,5 +18,7 @@ object Command {
     val AUTO_RESPONDER_MODE_REMOVE = arrayOf("remove", "rm", "delete")
 
     const val ADD = "add"
+    const val REMOVE = "remove"
+    const val REMOVE_SHORT = "rm"
     const val HELP = "help"
 }

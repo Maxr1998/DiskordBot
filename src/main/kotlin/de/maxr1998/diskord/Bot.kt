@@ -15,6 +15,8 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
+import de.maxr1998.diskord.Command.REMOVE
+import de.maxr1998.diskord.Command.REMOVE_SHORT
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +53,8 @@ class Bot(private val configFile: File) {
                 command(AUTO_RESPONDER) { message -> autoResponder(message) }
                 command(AUTO_RESPONDER_SHORT) { message -> autoResponder(message) }
                 command(ADD) { message -> addEntry(message) }
+                command(REMOVE) { message -> removeEntry(message) }
+                command(REMOVE_SHORT) { message -> removeEntry(message) }
 
                 // Help
                 command(Command.HELP) { message -> message.channel.showHelp() }
@@ -207,6 +211,42 @@ class Bot(private val configFile: File) {
             logger.debug("${message.author.username} added $entriesString to $command")
         } else {
             message.respond("This content already exists, try a different one!")
+        }
+
+        postPersistConfig()
+    }
+
+    private suspend fun BotContext.removeEntry(message: Message) {
+        // Only owner, admins and managers can remove entries
+        if (!checkManager(message)) return
+
+        val args = message.content
+            .replace("""\S+""", " ")
+            .split(" ", limit = 3)
+            .drop(1)
+        val command = args.getOrNull(0)?.trim()
+
+        val content = args.getOrNull(1)?.trim()?.takeUnless(String::isEmpty)
+
+        if (command == null || content == null) {
+            message.channel.showHelp()
+            return
+        }
+
+        val commandEntries = config.commands[command]
+
+        if (commandEntries == null) {
+            message.respond("Unknown auto-responder '$command'")
+            return
+        }
+
+        // Remove content from commands map
+        if (commandEntries.remove(content)) {
+            message.react(config.getAckEmoji())
+
+            logger.debug("${message.author.username} removed $content from $command")
+        } else {
+            message.respond("Content not found, nothing was removed.")
         }
 
         postPersistConfig()
