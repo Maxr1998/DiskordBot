@@ -26,14 +26,12 @@ import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 val logger = KotlinLogging.logger {}
 
-class Bot : KoinComponent {
-    private val configHelpers: ConfigHelpers by inject()
-
+class Bot(
+    private val configHelpers: ConfigHelpers,
+) {
     private lateinit var config: Config
 
     suspend fun run() {

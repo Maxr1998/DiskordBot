@@ -3,9 +3,11 @@ package de.maxr1998.diskord
 import org.koin.core.context.startKoin
 
 suspend fun main() {
-    startKoin {
+    val koinApp = startKoin {
         modules(appModule)
     }
 
-    Bot().run()
+    with(koinApp.koin) {
+        get<Bot>().run()
+    }
 }

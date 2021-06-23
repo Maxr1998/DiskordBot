@@ -12,6 +12,8 @@ import io.ktor.client.features.json.Json as KtorJsonFeature
 
 
 val appModule = module {
+    single { Bot(get()) }
+
     single {
         @OptIn(ExperimentalSerializationApi::class)
         Json {
