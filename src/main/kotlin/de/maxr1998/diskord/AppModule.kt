@@ -47,5 +47,5 @@ val appModule = module {
         ConfigHelpers(configFile = File(Constants.CONFIG_FILE_NAME), get())
     }
 
-    single { ImageResolver(get(), get()) }
+    single { ImageResolver(get(), get(), get()) }
 }

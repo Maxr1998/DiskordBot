@@ -1,5 +1,7 @@
 package de.maxr1998.diskord.utils
 
+import de.maxr1998.diskord.config.Config
+import de.maxr1998.diskord.config.ConfigHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.request.cookie
 import io.ktor.client.request.get
@@ -21,7 +23,10 @@ val logger = KotlinLogging.logger {}
 class ImageResolver(
     private val httpClient: HttpClient,
     private val json: Json,
+    configHelpers: ConfigHelpers,
 ) {
+    private val config: Config by configHelpers
+
     private val filePath = File("files").apply(File::mkdir)
 
     /**
@@ -71,10 +76,11 @@ class ImageResolver(
 
         // Download images
         val downloadResults = coroutineScope {
+            val baseUrl = config.fileServerBaseUrl.orEmpty()
             urls.mapIndexed { index, url ->
+                val path = "$shortcode-$index.jpg"
                 async {
-                    val path = "$shortcode-$index.jpg"
-                    if (httpClient.downloadFile(url, File(filePath, path))) path else null
+                    if (httpClient.downloadFile(url, File(filePath, path))) "$baseUrl/$path" else null
                 }
             }
         }

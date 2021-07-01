@@ -269,12 +269,7 @@ class Bot(
         val urls = imageResolver.resolve(content)
 
         if (urls.isNotEmpty()) {
-            message.respond(urls.joinToString(
-                prefix = "Successfully downloaded ${urls.size} images:\n",
-                separator = "\n",
-            ) { url ->
-                "${config.fileServerBaseUrl.orEmpty()}/$url"
-            })
+            message.respond(urls.joinToString(separator = "\n"))
         } else {
             message.respond("Couldn't process content, please ensure your query is correct.")
         }
