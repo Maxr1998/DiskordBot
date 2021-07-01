@@ -1,3 +1,4 @@
+import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.utils.UrlNormalizer
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.data.forAll
@@ -28,13 +29,13 @@ class UrlNormalizerTests : StringSpec({
         }
     }
     "Pinterest tests" {
-        val input = "${UrlNormalizer.PINTEREST_LINK_BASE}/123x/ab/cd/ef/abcdef00000000000000000000000000.jpg"
-        val result = "${UrlNormalizer.PINTEREST_LINK_BASE}/originals/ab/cd/ef/abcdef00000000000000000000000000.jpg"
+        val input = "${Constants.PINTEREST_IMAGE_BASE_URL}/123x/ab/cd/ef/abcdef00000000000000000000000000.jpg"
+        val result = "${Constants.PINTEREST_IMAGE_BASE_URL}/originals/ab/cd/ef/abcdef00000000000000000000000000.jpg"
 
         UrlNormalizer.normalizeUrls(input) shouldBe result
     }
 }) {
     companion object {
-        const val TW_TEST_URL = "${UrlNormalizer.TWITTER_LINK_BASE}/EXXXXXXXXXXXXXX"
+        const val TW_TEST_URL = "${Constants.TWITTER_IMAGE_BASE_URL}EXXXXXXXXXXXXXX"
     }
 }

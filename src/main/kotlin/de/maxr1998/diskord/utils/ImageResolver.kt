@@ -1,5 +1,6 @@
 package de.maxr1998.diskord.utils
 
+import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import io.ktor.client.HttpClient
@@ -89,7 +90,6 @@ class ImageResolver(
     }
 
     companion object {
-        private const val INSTAGRAM_BASE_URL = "https://www.instagram.com"
         private val INSTAGRAM_GRAPH_REPLACEMENT = Regex("""($INSTAGRAM_BASE_URL/p/[^/]+/).*""") to "$1"
         private const val CONTENT_START_MARKER = "window._sharedData = "
         private const val CONTENT_END_MARKER = ";</script>"
