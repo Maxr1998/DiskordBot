@@ -35,12 +35,12 @@ class Bot(
     private val configHelpers: ConfigHelpers,
     private val imageResolver: ImageResolver,
 ) {
-    private lateinit var config: Config
+    private val config: Config by configHelpers
 
     suspend fun run() {
         logger.debug("Starting Diskord bot…")
 
-        config = configHelpers.readConfig()
+        configHelpers.awaitConfig()
 
         logger.debug("Successfully loaded config.")
 
@@ -86,7 +86,7 @@ class Bot(
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to admin")
         }
 
-        configHelpers.postPersistConfig(config)
+        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.promoteManager(message: Message) {
@@ -101,7 +101,7 @@ class Bot(
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to manager")
         }
 
-        configHelpers.postPersistConfig(config)
+        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.autoResponder(message: Message) {
@@ -168,7 +168,7 @@ class Bot(
             }
         }
 
-        configHelpers.postPersistConfig(config)
+        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.addEntry(message: Message) {
@@ -219,7 +219,7 @@ class Bot(
             message.respond("This content already exists, try a different one!")
         }
 
-        configHelpers.postPersistConfig(config)
+        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.removeEntry(message: Message) {
@@ -255,7 +255,7 @@ class Bot(
             message.respond("Content not found, nothing was removed.")
         }
 
-        configHelpers.postPersistConfig(config)
+        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.resolve(message: Message) {
