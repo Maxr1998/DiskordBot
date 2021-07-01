@@ -1,6 +1,8 @@
 package de.maxr1998.diskord.utils
 
+import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
+import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import io.ktor.client.HttpClient
@@ -8,6 +10,7 @@ import io.ktor.client.request.cookie
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
+import io.ktor.http.userAgent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -17,6 +20,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import mu.KotlinLogging
+import org.jsoup.Jsoup
 import java.io.File
 
 val logger = KotlinLogging.logger {}
@@ -35,6 +39,7 @@ class ImageResolver(
      */
     suspend fun resolve(content: String): List<String> = when {
         content.startsWith(INSTAGRAM_BASE_URL) -> handleInstagramUrl(content)
+        content.matches(TWITTER_URL_REGEX) -> handleTwitterUrl(content.replace(TWITTER_URL_REGEX, "https://$1"))
         else -> emptyList()
     }
 
@@ -49,11 +54,11 @@ class ImageResolver(
                 cookie("ig_pr", "1")
             }
 
-            val startIndex = response.indexOf(CONTENT_START_MARKER)
+            val startIndex = response.indexOf(INSTAGRAM_CONTENT_START_MARKER)
             if (startIndex < 0) return emptyList()
-            val endIndex = response.indexOf(CONTENT_END_MARKER, startIndex = startIndex)
+            val endIndex = response.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
             if (endIndex < 0) return emptyList()
-            val sharedDataString = response.substring(startIndex + CONTENT_START_MARKER.length, endIndex)
+            val sharedDataString = response.substring(startIndex + INSTAGRAM_CONTENT_START_MARKER.length, endIndex)
             val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
 
             // Ugly, blame complex response JSON structure
@@ -89,9 +94,37 @@ class ImageResolver(
         return downloadResults.awaitAll().filterNotNull()
     }
 
+    private suspend fun handleTwitterUrl(url: String): List<String> {
+        val response = httpClient.get<String>(url) {
+            userAgent(Constants.DISCORD_BOT_USER_AGENT)
+        }
+
+        val document = Jsoup.parse(response, url)
+        val metaTags = document.head().getElementsByTag("meta")
+
+        val imageUrls = metaTags.mapNotNull { element ->
+            if (element.attr("property") != "og:image") {
+                return@mapNotNull null
+            }
+
+            val content = element.attr("content")
+            if (!content.startsWith(TWITTER_IMAGE_BASE_URL)) {
+                return@mapNotNull null
+            }
+
+            UrlNormalizer.normalizeUrls(content)
+        }
+
+        logger.debug("Resolved ${imageUrls.size} images from Twitter post")
+
+        return imageUrls
+    }
+
     companion object {
         private val INSTAGRAM_GRAPH_REPLACEMENT = Regex("""($INSTAGRAM_BASE_URL/p/[^/]+/).*""") to "$1"
-        private const val CONTENT_START_MARKER = "window._sharedData = "
-        private const val CONTENT_END_MARKER = ";</script>"
+        private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
+        private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
+
+        private val TWITTER_URL_REGEX = Regex("""https?://(?:(?:www|mobile)\.)?(twitter\.com/[A-Za-z_\d]+/status/[\d]+)(?:\?.*)?""")
     }
 }

@@ -38,6 +38,7 @@ dependencies {
         exclude("org.slf4j", "slf4j-simple")
     }
     implementation(libs.bundles.ktor)
+    implementation(libs.jsoup)
 
     // Logging
     implementation(libs.bundles.logging)
