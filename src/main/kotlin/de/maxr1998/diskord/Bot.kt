@@ -187,7 +187,12 @@ class Bot(
                 val repliedMessage = message.reference?.messageId?.let { id -> message.channel.getMessage(id) }
                 message.attachmentUrlsOrNull
                     ?: repliedMessage?.attachmentUrlsOrNull
-                    ?: repliedMessage?.let { msg -> wrapListIfNotEmpty(msg.content) }
+                    ?: repliedMessage?.let { msg ->
+                        val content = msg.content
+                        if (content.startsWith(Constants.LINE_SEPARATED_CONTENT_TAG)) {
+                            content.removePrefix(Constants.LINE_SEPARATED_CONTENT_TAG).split("\n")
+                        } else wrapListIfNotEmpty(content)
+                    }
                     ?: emptyList()
             }
             2 -> wrapListIfNotEmpty(args[1])
@@ -269,7 +274,7 @@ class Bot(
         val urls = imageResolver.resolve(content)
 
         if (urls.isNotEmpty()) {
-            message.respond(urls.joinToString(separator = "\n"))
+            message.respond(urls.joinToString(prefix = Constants.LINE_SEPARATED_CONTENT_TAG, separator = "\n"))
         } else {
             message.respond("Couldn't process content, please ensure your query is correct.")
         }
