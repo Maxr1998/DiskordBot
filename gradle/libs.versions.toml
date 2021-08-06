@@ -5,7 +5,7 @@ diskord = "2.0.2"
 kotlinLogging = "2.0.10"
 logback = "1.2.5"
 kotest = "4.6.1"
-ktor = "1.6.1"
+ktor = "1.6.2"
 jsoup = "1.14.1"
 
 [libraries]
