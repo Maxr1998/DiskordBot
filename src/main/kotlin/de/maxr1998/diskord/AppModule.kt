@@ -3,7 +3,7 @@ package de.maxr1998.diskord
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent
 import io.ktor.client.features.logging.DEFAULT
 import io.ktor.client.features.logging.LogLevel
@@ -29,7 +29,7 @@ val appModule = module {
     }
 
     single {
-        HttpClient(CIO) {
+        HttpClient(Java) {
             BrowserUserAgent()
             install(Logging) {
                 logger = Logger.DEFAULT
