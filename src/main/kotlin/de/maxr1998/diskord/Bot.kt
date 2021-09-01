@@ -212,6 +212,24 @@ class Bot(
             return
         }
 
+        // Try to resolve images from a single link
+        val singleEntry = entries.singleOrNull()
+        if (singleEntry != null && !singleEntry.contains(Regex("""\s"""))) {
+            val images = imageResolver.resolve(singleEntry)
+            if (images.isNotEmpty()) {
+                // Resolved images, add to map
+                if (commandEntries.addAll(images)) {
+                    configHelpers.postPersistConfig()
+                    val imagesString = images.joinToString(prefix = "\n", separator = "\n")
+                    message.respond("Resolved ${images.size} image(s) and added them to `$command`\n$imagesString")
+                    logAdd(message, command, images)
+                } else {
+                    message.respond("This content already exists, try a different one!")
+                }
+                return
+            }
+        }
+
         // Normalize URLs
         val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
 
