@@ -29,7 +29,7 @@ import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 
-val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 class Bot(
     private val configHelpers: ConfigHelpers,

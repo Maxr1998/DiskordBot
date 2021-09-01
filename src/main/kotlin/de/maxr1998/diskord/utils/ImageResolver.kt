@@ -23,7 +23,7 @@ import mu.KotlinLogging
 import org.jsoup.Jsoup
 import java.io.File
 
-val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 class ImageResolver(
     private val httpClient: HttpClient,
