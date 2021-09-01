@@ -267,12 +267,14 @@ class Bot(
             return
         }
 
+        val normalizedContent = UrlNormalizer.normalizeUrls(content)
+
         // Remove content from commands map
-        if (commandEntries.remove(content)) {
+        if (commandEntries.remove(normalizedContent)) {
             configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
 
-            logger.debug("${message.author.username} removed $content from $command")
+            logger.debug("${message.author.username} removed $normalizedContent from $command")
         } else {
             message.respond("Content not found, nothing was removed.")
         }
