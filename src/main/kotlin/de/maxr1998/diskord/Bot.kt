@@ -81,12 +81,11 @@ class Bot(
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
         if (config.adminIds.addAll(users)) {
+            configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
 
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to admin")
         }
-
-        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.promoteManager(message: Message) {
@@ -96,12 +95,11 @@ class Bot(
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
         if (config.managerIds.addAll(users)) {
+            configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
 
             logger.debug("${users.joinToString(prefix = "[", postfix = "]")} promoted to manager")
         }
-
-        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.autoResponder(message: Message) {
@@ -130,6 +128,7 @@ class Bot(
                 }
 
                 config.commands[command] = HashSet()
+                configHelpers.postPersistConfig()
 
                 message.respond("Successfully added auto-responder for '$command'")
                 logger.debug("${message.author.username} added auto-responder $command")
@@ -156,8 +155,10 @@ class Bot(
                 }
 
                 if (config.commands.remove(command) == null) {
+                    message.respond("Unknown auto-responder '$command'")
                     return
                 }
+                configHelpers.postPersistConfig()
 
                 message.respond("Successfully removed auto-responder for '$command'")
                 logger.debug("${message.author.username} removed auto-responder $command")
@@ -167,8 +168,6 @@ class Bot(
                 return
             }
         }
-
-        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.addEntry(message: Message) {
@@ -218,13 +217,12 @@ class Bot(
 
         // Add content to commands map
         if (commandEntries.addAll(normalizedEntries)) {
+            configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
             logAdd(message, command, normalizedEntries)
         } else {
             message.respond("This content already exists, try a different one!")
         }
-
-        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.removeEntry(message: Message) {
@@ -253,14 +251,13 @@ class Bot(
 
         // Remove content from commands map
         if (commandEntries.remove(content)) {
+            configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
 
             logger.debug("${message.author.username} removed $content from $command")
         } else {
             message.respond("Content not found, nothing was removed.")
         }
-
-        configHelpers.postPersistConfig()
     }
 
     private suspend fun BotContext.resolve(message: Message) {
