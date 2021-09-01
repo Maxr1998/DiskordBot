@@ -6,10 +6,10 @@ import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import io.ktor.client.HttpClient
-import io.ktor.client.request.cookie
+import io.ktor.client.call.receive
 import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.http.HttpHeaders
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.isSuccess
 import io.ktor.http.userAgent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -49,16 +49,15 @@ class ImageResolver(
 
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
-            val response = httpClient.get<String>(postUrl) {
-                header(HttpHeaders.Referrer, INSTAGRAM_BASE_URL)
-                cookie("ig_pr", "1")
-            }
+            val response = httpClient.get<HttpResponse>(postUrl) {}
 
-            val startIndex = response.indexOf(INSTAGRAM_CONTENT_START_MARKER)
+            if (!response.status.isSuccess()) return emptyList()
+            val content = response.receive<String>()
+            val startIndex = content.indexOf(INSTAGRAM_CONTENT_START_MARKER)
             if (startIndex < 0) return emptyList()
-            val endIndex = response.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
+            val endIndex = content.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
             if (endIndex < 0) return emptyList()
-            val sharedDataString = response.substring(startIndex + INSTAGRAM_CONTENT_START_MARKER.length, endIndex)
+            val sharedDataString = content.substring(startIndex + INSTAGRAM_CONTENT_START_MARKER.length, endIndex)
             val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
 
             // Ugly, blame complex response JSON structure
