@@ -5,7 +5,6 @@ import de.maxr1998.diskord.utils.ImageResolver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.BrowserUserAgent
-import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.features.logging.DEFAULT
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logger
@@ -14,7 +13,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import java.io.File
-import io.ktor.client.features.json.Json as KtorJsonFeature
 
 val appModule = module {
     single { Bot(get(), get()) }
@@ -33,9 +31,6 @@ val appModule = module {
     single {
         HttpClient(CIO) {
             BrowserUserAgent()
-            KtorJsonFeature {
-                serializer = KotlinxSerializer(get())
-            }
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.HEADERS
