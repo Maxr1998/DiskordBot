@@ -219,9 +219,7 @@ class Bot(
         // Add content to commands map
         if (commandEntries.addAll(normalizedEntries)) {
             message.react(config.getAckEmoji())
-
-            val entriesString = normalizedEntries.joinToString(separator = ",", prefix = "[", postfix = "]")
-            logger.debug("${message.author.username} added $entriesString to $command")
+            logAdd(message, command, normalizedEntries)
         } else {
             message.respond("This content already exists, try a different one!")
         }
@@ -338,5 +336,10 @@ class Bot(
             return false
         }
         return true
+    }
+
+    private fun logAdd(message: Message, command: String, entries: List<String>) {
+        val entriesString = entries.joinToString(separator = ",", prefix = "[", postfix = "]")
+        logger.debug("${message.author.username} added $entriesString to $command")
     }
 }
