@@ -179,7 +179,16 @@ class Bot(
             .replace("""\S+""", " ")
             .split(" ", limit = 3)
             .drop(1)
-        val command = args.getOrNull(0)?.trim()
+
+        val command = args.getOrNull(0)?.trim() ?: run {
+            message.channel.showHelp()
+            return
+        }
+
+        val commandEntries = config.commands[command] ?: run {
+            message.respond("Unknown auto-responder '$command'")
+            return
+        }
 
         val entries = when (args.size) {
             1 -> {
@@ -199,15 +208,8 @@ class Bot(
             else -> emptyList()
         }
 
-        if (command == null || entries.isEmpty()) {
+        if (entries.isEmpty()) {
             message.channel.showHelp()
-            return
-        }
-
-        val commandEntries = config.commands[command]
-
-        if (commandEntries == null) {
-            message.respond("Unknown auto-responder '$command'")
             return
         }
 
