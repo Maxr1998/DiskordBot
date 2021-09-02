@@ -37,26 +37,29 @@ class ImageResolver(
     /**
      * Tries to resolve image urls or images from online services
      */
-    suspend fun resolve(content: String): List<String> = when {
+    suspend fun resolve(content: String): Result<List<String>> = when {
         content.startsWith(INSTAGRAM_BASE_URL) -> handleInstagramUrl(content)
         content.matches(TWITTER_URL_REGEX) -> handleTwitterUrl(content.replace(TWITTER_URL_REGEX, "https://$1"))
-        else -> emptyList()
+        else -> Status.Unsupported()
     }
 
-    private suspend fun handleInstagramUrl(url: String): List<String> {
+    private suspend fun handleInstagramUrl(url: String): Result<List<String>> {
         val (postRegex, replacement) = INSTAGRAM_GRAPH_REPLACEMENT
         val postUrl = url.replace(postRegex, replacement)
 
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
             val response = httpClient.get<HttpResponse>(postUrl) {}
+            when {
+                !response.status.isSuccess() -> return Status.Unknown()
+                response.call.request.url.encodedPath.startsWith("/accounts/login") -> return Status.RateLimited()
+            }
 
-            if (!response.status.isSuccess()) return emptyList()
             val content = response.receive<String>()
             val startIndex = content.indexOf(INSTAGRAM_CONTENT_START_MARKER)
-            if (startIndex < 0) return emptyList()
+            if (startIndex < 0) return Status.ParsingFailed()
             val endIndex = content.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
-            if (endIndex < 0) return emptyList()
+            if (endIndex < 0) return Status.ParsingFailed()
             val sharedDataString = content.substring(startIndex + INSTAGRAM_CONTENT_START_MARKER.length, endIndex)
             val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
 
@@ -74,9 +77,11 @@ class ImageResolver(
             } ?: listOf(shortcodeMedia["display_url"]!!.jsonPrimitive.content)
 
             shortcode to urls
+        } catch (e: NullPointerException) {
+            return Status.ParsingFailed()
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
-            return emptyList()
+            return Status.Unknown()
         }
 
         // Download images
@@ -90,10 +95,10 @@ class ImageResolver(
             }
         }
 
-        return downloadResults.awaitAll().filterNotNull()
+        return Result.success(downloadResults.awaitAll().filterNotNull())
     }
 
-    private suspend fun handleTwitterUrl(url: String): List<String> {
+    private suspend fun handleTwitterUrl(url: String): Result<List<String>> {
         val response = httpClient.get<String>(url) {
             userAgent(Constants.DISCORD_BOT_USER_AGENT)
         }
@@ -114,9 +119,23 @@ class ImageResolver(
             UrlNormalizer.normalizeUrls(content)
         }
 
-        logger.debug("Resolved ${imageUrls.size} images from Twitter post")
+        return if (imageUrls.isNotEmpty()) {
+            logger.debug("Resolved ${imageUrls.size} images from Twitter post")
 
-        return imageUrls
+            Result.success(imageUrls)
+        } else {
+            Status.Unknown()
+        }
+    }
+
+    sealed class Status : Exception() {
+        object Unsupported : Status()
+        sealed class Failure : Status()
+        object RateLimited : Failure()
+        object ParsingFailed : Failure()
+        object Unknown : Failure()
+
+        operator fun <T> invoke() = Result.failure<T>(this)
     }
 
     companion object {

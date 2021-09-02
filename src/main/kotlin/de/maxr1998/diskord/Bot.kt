@@ -215,8 +215,7 @@ class Bot(
         // Try to resolve images from a single link
         val singleEntry = entries.singleOrNull()
         if (singleEntry != null && !singleEntry.contains(Regex("""\s"""))) {
-            val images = imageResolver.resolve(singleEntry)
-            if (images.isNotEmpty()) {
+            imageResolver.resolve(singleEntry).onSuccess { images ->
                 // Resolved images, add to map
                 if (commandEntries.addAll(images)) {
                     configHelpers.postPersistConfig()
@@ -227,6 +226,20 @@ class Bot(
                     message.respond("This content already exists, try a different one!")
                 }
                 return
+            }.onFailure { exception ->
+                require(exception is ImageResolver.Status)
+                when (exception) {
+                    is ImageResolver.Status.Failure -> {
+                        val errorText = when (exception) {
+                            ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
+                            ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                            ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+                        }
+                        message.respond(errorText)
+                        return
+                    }
+                    ImageResolver.Status.Unsupported -> Unit // Continue normally
+                }
             }
         }
 
@@ -288,12 +301,17 @@ class Bot(
             .removePrefix("$COMMAND_PREFIX$RESOLVE ")
             .replace("""\S+""", " ")
 
-        val urls = imageResolver.resolve(content)
-
-        if (urls.isNotEmpty()) {
-            message.respond(urls.joinToString(prefix = Constants.LINE_SEPARATED_CONTENT_TAG, separator = "\n"))
-        } else {
-            message.respond("Couldn't process content, please ensure your query is correct.")
+        imageResolver.resolve(content).onSuccess { images ->
+            message.respond(images.joinToString(prefix = Constants.LINE_SEPARATED_CONTENT_TAG, separator = "\n"))
+        }.onFailure { exception ->
+            require(exception is ImageResolver.Status)
+            val errorText = when (exception) {
+                ImageResolver.Status.Unsupported -> "Unsupported content. Try a different link."
+                ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
+                ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+            }
+            message.respond(errorText)
         }
     }
 
