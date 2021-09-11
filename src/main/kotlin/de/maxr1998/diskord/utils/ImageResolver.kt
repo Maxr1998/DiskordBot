@@ -5,15 +5,21 @@ import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.model.imgur.ImgurImage
+import de.maxr1998.diskord.model.imgur.ImgurResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
+import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import io.ktor.http.userAgent
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -40,6 +46,7 @@ class ImageResolver(
     suspend fun resolve(content: String): Result<List<String>> = when {
         content.startsWith(INSTAGRAM_BASE_URL) -> handleInstagramUrl(content)
         content.matches(TWITTER_URL_REGEX) -> handleTwitterUrl(content.replace(TWITTER_URL_REGEX, "https://$1"))
+        content.matches(IMGUR_ALBUM_URL_REGEX) -> handleImgurAlbumUrl(content.replace(IMGUR_ALBUM_URL_REGEX, "$1"))
         else -> Status.Unsupported()
     }
 
@@ -128,6 +135,31 @@ class ImageResolver(
         }
     }
 
+    private suspend fun handleImgurAlbumUrl(albumId: String): Result<List<String>> {
+        val response = try {
+            httpClient.get<ImgurResponse<ImgurImage>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
+                header(HttpHeaders.Authorization, "Client-ID ${config.imgurClientId}")
+            }
+        } catch (e: ClientRequestException) {
+            return Status.Unsupported()
+        } catch (e: SerializationException) {
+            return Status.ParsingFailed()
+        } catch (e: Exception) {
+            logger.error("Error while resolving Imgur album URL", e)
+            return Status.Unknown()
+        }
+
+        val imageUrls = response.data.map(ImgurImage::link)
+
+        return if (imageUrls.isNotEmpty()) {
+            logger.debug("Resolved ${imageUrls.size} images from Imgur album")
+
+            Result.success(imageUrls)
+        } else {
+            Status.Unknown()
+        }
+    }
+
     sealed class Status : Exception() {
         object Unsupported : Status()
         sealed class Failure : Status()
@@ -144,5 +176,8 @@ class ImageResolver(
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
 
         private val TWITTER_URL_REGEX = Regex("""https?://(?:(?:www|mobile)\.)?(twitter\.com/[A-Za-z_\d]+/status/[\d]+)(?:/|\?.*)?""")
+
+        private val IMGUR_ALBUM_URL_REGEX = Regex("""https?://(?:m\.)?imgur.com/a/(\w+)(?:#\w+)?""")
+        private const val IMGUR_API_ALBUM_IMAGES_PATH = "https://api.imgur.com/3/album/%s/images"
     }
 }

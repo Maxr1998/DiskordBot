@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class Config(
     @SerialName("bot_token")
     val botToken: String,
+    @SerialName("imgur_client_id")
+    val imgurClientId: String,
     @SerialName("owner_id")
     val ownerId: String,
     @SerialName("admin_ids")
