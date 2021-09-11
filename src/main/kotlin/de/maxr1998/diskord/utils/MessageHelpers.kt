@@ -3,6 +3,7 @@ package de.maxr1998.diskord.utils
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotContext
+import de.maxr1998.diskord.Constants
 
 fun Message.args(limit: Int) = content
     .replace("""\S+""", " ")
@@ -26,7 +27,10 @@ suspend fun BotContext.extractEntries(args: List<String>, message: Message): Lis
         message.attachmentUrlsOrNull
             ?: repliedMessage?.attachmentUrlsOrNull
             ?: repliedMessage?.let { msg ->
-                wrapListIfNotEmpty(msg.content)
+                val content = msg.content
+                if (content.startsWith(Constants.LINE_SEPARATED_CONTENT_TAG)) {
+                    content.removePrefix(Constants.LINE_SEPARATED_CONTENT_TAG).split("\n")
+                } else wrapListIfNotEmpty(content)
             }
     }
     2 -> wrapListIfNotEmpty(args[1])
