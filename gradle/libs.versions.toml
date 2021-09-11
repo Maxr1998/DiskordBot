@@ -2,10 +2,12 @@
 koin = "3.1.2"
 coroutines = "1.5.1"
 diskord = "2.1.0-SNAPSHOT"
+ktor = "1.6.3"
+exposed = "0.33.1"
+sqlitejdbc = "3.36.0.1"
 kotlinLogging = "2.0.11"
 logback = "1.2.5"
 kotest = "4.6.1"
-ktor = "1.6.3"
 jsoup = "1.14.2"
 
 [libraries]
@@ -16,6 +18,9 @@ ktor-client-java = { group = "io.ktor", name = "ktor-client-java", version.ref =
 ktor-client-serialization-jvm = { group = "io.ktor", name = "ktor-client-serialization-jvm", version.ref = "ktor" }
 ktor-client-json = { group = "io.ktor", name = "ktor-client-json", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
+exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
+sqlitejdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlitejdbc" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 kotlinLogging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlinLogging" }
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
@@ -24,5 +29,6 @@ kotest-property = { group = "io.kotest", name = "kotest-property", version.ref =
 
 [bundles]
 ktor = ["ktor-client-java", "ktor-client-serialization-jvm", "ktor-client-json", "ktor-client-logging"]
+exposed = ["exposed-core", "exposed-jdbc"]
 logging = ["kotlinLogging", "logback"]
 kotest = ["kotest-junitRunner", "kotest-property"]
