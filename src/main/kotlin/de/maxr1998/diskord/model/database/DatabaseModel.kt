@@ -17,9 +17,21 @@ object Commands : IntIdTable("commands") {
     }
 }
 
+object EntryType {
+    const val UNKNOWN = -1
+    const val TEXT = 0
+    const val LINK = 1
+    const val IMAGE = 2
+    const val GIF = 3
+    const val VIDEO = 4
+}
+
 object CommandEntries : LongIdTable("command_entries") {
     val command = reference("command", Commands, ReferenceOption.CASCADE, ReferenceOption.CASCADE).index()
     val content = varchar("content", MAX_CONTENT_LENGTH)
+    val type = integer("type").default(EntryType.UNKNOWN).index()
+    val width = integer("width").default(0)
+    val height = integer("height").default(0)
 
     init {
         uniqueIndex(command, content)
