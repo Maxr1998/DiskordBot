@@ -23,11 +23,11 @@ import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
-import de.maxr1998.diskord.utils.args
-import de.maxr1998.diskord.utils.checkAdmin
-import de.maxr1998.diskord.utils.checkManager
-import de.maxr1998.diskord.utils.checkOwner
-import de.maxr1998.diskord.utils.extractEntries
+import de.maxr1998.diskord.utils.diskord.args
+import de.maxr1998.diskord.utils.diskord.checkAdmin
+import de.maxr1998.diskord.utils.diskord.checkManager
+import de.maxr1998.diskord.utils.diskord.checkOwner
+import de.maxr1998.diskord.utils.diskord.extractEntries
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove

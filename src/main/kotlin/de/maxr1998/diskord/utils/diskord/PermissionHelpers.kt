@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.utils
+package de.maxr1998.diskord.utils.diskord
 
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotContext
