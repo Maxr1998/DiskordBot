@@ -23,19 +23,20 @@ import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
-import de.maxr1998.diskord.utils.attachmentUrlsOrNull
+import de.maxr1998.diskord.utils.args
 import de.maxr1998.diskord.utils.checkAdmin
 import de.maxr1998.diskord.utils.checkManager
 import de.maxr1998.diskord.utils.checkOwner
+import de.maxr1998.diskord.utils.extractEntries
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
-import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
+@Suppress("DuplicatedCode")
 class Bot(
     private val configHelpers: ConfigHelpers,
     private val imageResolver: ImageResolver,
@@ -179,10 +180,7 @@ class Bot(
         // Only owner, admins and managers can add new entries
         if (!checkManager(config, message)) return
 
-        val args = message.content
-            .replace("""\S+""", " ")
-            .split(" ", limit = 3)
-            .drop(1)
+        val args = message.args(limit = 3)
 
         val command = args.getOrNull(0)?.trim() ?: run {
             message.channel.showHelp()
@@ -194,25 +192,7 @@ class Bot(
             return
         }
 
-        val entries = when (args.size) {
-            1 -> {
-                // Handle message attachments or replied message attachments or content
-                val repliedMessage = message.reference?.messageId?.let { id -> message.channel.getMessage(id) }
-                message.attachmentUrlsOrNull
-                    ?: repliedMessage?.attachmentUrlsOrNull
-                    ?: repliedMessage?.let { msg ->
-                        val content = msg.content
-                        if (content.startsWith(Constants.LINE_SEPARATED_CONTENT_TAG)) {
-                            content.removePrefix(Constants.LINE_SEPARATED_CONTENT_TAG).split("\n")
-                        } else wrapListIfNotEmpty(content)
-                    }
-                    ?: emptyList()
-            }
-            2 -> wrapListIfNotEmpty(args[1])
-            else -> emptyList()
-        }
-
-        if (entries.isEmpty()) {
+        val entries = extractEntries(args, message) ?: run {
             message.channel.showHelp()
             return
         }
@@ -265,33 +245,31 @@ class Bot(
         // Only owner, admins and managers can remove entries
         if (!checkManager(config, message)) return
 
-        val args = message.content
-            .replace("""\S+""", " ")
-            .split(" ", limit = 3)
-            .drop(1)
-        val command = args.getOrNull(0)?.trim()
+        val args = message.args(limit = 3)
 
-        val content = args.getOrNull(1)?.trim()?.takeUnless(String::isEmpty)
-
-        if (command == null || content == null) {
+        val command = args.getOrNull(0)?.trim() ?: run {
             message.channel.showHelp()
             return
         }
 
-        val commandEntries = config.commands[command]
-
-        if (commandEntries == null) {
+        val commandEntries = config.commands[command] ?: run {
             message.respond("Unknown auto-responder '$command'")
             return
         }
 
-        val normalizedContent = UrlNormalizer.normalizeUrls(content)
+        val entries = extractEntries(args, message) ?: run {
+            message.channel.showHelp()
+            return
+        }
+
+        // Normalize URLs
+        val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
 
         // Remove content from commands map
-        if (commandEntries.remove(normalizedContent)) {
+        if (commandEntries.removeAll(normalizedEntries)) {
             configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
-            logger.logRemove(message.author, command, listOf(normalizedContent))
+            logger.logRemove(message.author, command, normalizedEntries)
         } else {
             message.respond("Content not found, nothing was removed.")
         }
