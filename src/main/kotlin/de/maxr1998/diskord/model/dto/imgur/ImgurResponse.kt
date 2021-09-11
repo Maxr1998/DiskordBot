@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.model.imgur
+package de.maxr1998.diskord.model.dto.imgur
 
 import kotlinx.serialization.Serializable
 

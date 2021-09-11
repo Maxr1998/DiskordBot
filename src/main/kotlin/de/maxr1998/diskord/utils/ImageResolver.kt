@@ -5,8 +5,8 @@ import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.model.imgur.ImgurImage
-import de.maxr1998.diskord.model.imgur.ImgurResponse
+import de.maxr1998.diskord.model.dto.imgur.ImgurImage
+import de.maxr1998.diskord.model.dto.imgur.ImgurResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.features.ClientRequestException
