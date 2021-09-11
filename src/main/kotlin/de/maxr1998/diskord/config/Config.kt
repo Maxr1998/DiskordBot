@@ -16,7 +16,6 @@ data class Config(
     @SerialName("manager_ids")
     val managerIds: MutableSet<String> = HashSet(),
 
-    val commands: MutableMap<String, MutableSet<String>> = HashMap(),
     @SerialName("ack_emoji_id")
     val ackEmojiId: String? = null,
     @SerialName("file_server_base_url")
