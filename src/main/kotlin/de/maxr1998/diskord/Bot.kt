@@ -24,6 +24,9 @@ import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.attachmentUrlsOrNull
+import de.maxr1998.diskord.utils.checkAdmin
+import de.maxr1998.diskord.utils.checkManager
+import de.maxr1998.diskord.utils.checkOwner
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.delay
@@ -76,7 +79,7 @@ class Bot(
 
     private suspend fun BotContext.promoteAdmin(message: Message) {
         // Admins can only be promoted by the owner
-        if (!checkOwner(message)) return
+        if (!checkOwner(config, message)) return
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -90,7 +93,7 @@ class Bot(
 
     private suspend fun BotContext.promoteManager(message: Message) {
         // Managers can only be promoted by the owner and admins
-        if (!checkAdmin(message)) return
+        if (!checkAdmin(config, message)) return
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -104,7 +107,7 @@ class Bot(
 
     private suspend fun BotContext.autoResponder(message: Message) {
         // Only owner and admins can add new auto-responders
-        if (!checkAdmin(message)) return
+        if (!checkAdmin(config, message)) return
 
         val args = message.words.drop(1)
         if (args.size !in 1..2) {
@@ -172,7 +175,7 @@ class Bot(
 
     private suspend fun BotContext.addEntry(message: Message) {
         // Only owner, admins and managers can add new entries
-        if (!checkManager(message)) return
+        if (!checkManager(config, message)) return
 
         val args = message.content
             .replace("""\S+""", " ")
@@ -258,7 +261,7 @@ class Bot(
 
     private suspend fun BotContext.removeEntry(message: Message) {
         // Only owner, admins and managers can remove entries
-        if (!checkManager(message)) return
+        if (!checkManager(config, message)) return
 
         val args = message.content
             .replace("""\S+""", " ")
@@ -295,7 +298,7 @@ class Bot(
 
     private suspend fun BotContext.resolve(message: Message) {
         // Only managers may use the bot to resolve links
-        if (!checkManager(message)) return
+        if (!checkManager(config, message)) return
 
         val content = message.content
             .removePrefix("$COMMAND_PREFIX$RESOLVE ")
@@ -345,32 +348,6 @@ class Bot(
                 inline = false,
             ),
         )
-    }
-
-    private suspend fun BotContext.checkOwner(message: Message): Boolean {
-        if (message.author.id != config.ownerId) {
-            message.reply("Insufficient permissions")
-            return false
-        }
-        return true
-    }
-
-    private suspend fun BotContext.checkAdmin(message: Message): Boolean {
-        val authorId = message.author.id
-        if (authorId != config.ownerId && authorId !in config.adminIds) {
-            message.reply("Insufficient permissions")
-            return false
-        }
-        return true
-    }
-
-    private suspend fun BotContext.checkManager(message: Message): Boolean {
-        val authorId = message.author.id
-        if (authorId != config.ownerId && authorId !in config.adminIds && authorId !in config.managerIds) {
-            message.reply("Insufficient permissions")
-            return false
-        }
-        return true
     }
 
     private fun logAdd(message: Message, command: String, entries: List<String>) {
