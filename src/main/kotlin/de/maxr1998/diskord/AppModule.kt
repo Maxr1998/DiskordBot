@@ -1,6 +1,7 @@
 package de.maxr1998.diskord
 
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.utils.DatabaseHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
@@ -17,7 +18,7 @@ import io.ktor.client.features.json.Json as KtorJson
 import io.ktor.client.features.logging.Logger as KtorLogger
 
 val appModule = module {
-    single { Bot(get(), get()) }
+    single { Bot(get(), get(), get()) }
 
     single {
         @OptIn(ExperimentalSerializationApi::class)
@@ -55,6 +56,10 @@ val appModule = module {
 
     single {
         ConfigHelpers(configFile = File(Constants.CONFIG_FILE_NAME), get())
+    }
+
+    single {
+        DatabaseHelpers(databaseFile = File(Constants.DATABASE_FILE_NAME))
     }
 
     single { ImageResolver(get(), get(), get()) }

@@ -10,5 +10,5 @@ fun KLogger.logAdd(user: User, command: String, entries: List<String>) {
 
 fun KLogger.logRemove(user: User, command: String, entries: List<String>) {
     val entriesString = entries.joinToString(separator = ",", prefix = "[", postfix = "]")
-    debug("${user.username} added $entriesString to $command")
+    debug("${user.username} removed $entriesString from $command")
 }

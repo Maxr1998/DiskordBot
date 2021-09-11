@@ -8,6 +8,7 @@ import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.bot.classicCommands
 import com.jessecorbett.diskord.util.sendEmbed
+import com.jessecorbett.diskord.util.sendMessage
 import com.jessecorbett.diskord.util.words
 import de.maxr1998.diskord.Command.ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER
@@ -21,6 +22,8 @@ import de.maxr1998.diskord.Command.RESOLVE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.model.repository.DynamicCommandRepository
+import de.maxr1998.diskord.utils.DatabaseHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.diskord.args
@@ -39,6 +42,7 @@ private val logger = KotlinLogging.logger {}
 @Suppress("DuplicatedCode")
 class Bot(
     private val configHelpers: ConfigHelpers,
+    private val databaseHelpers: DatabaseHelpers,
     private val imageResolver: ImageResolver,
 ) {
     private val config: Config by configHelpers
@@ -47,8 +51,12 @@ class Bot(
         logger.debug("Starting Diskord bot…")
 
         configHelpers.awaitConfig()
-
         logger.debug("Successfully loaded config.")
+
+        databaseHelpers.setup()
+        logger.debug("Successfully connected to database.")
+
+        databaseHelpers.createSchemas()
 
         bot(config.botToken) {
             classicCommands(commandPrefix = COMMAND_PREFIX) {
@@ -73,7 +81,7 @@ class Bot(
             }
 
             // Dynamic commands
-            DynamicCommandsModule(config).install(this)
+            DynamicCommandsModule().install(this)
         }
 
         // Keep application alive
@@ -121,6 +129,11 @@ class Bot(
         val mode = args[0]
         val command = args.getOrNull(1)
 
+        val guild = message.guildId ?: run {
+            message.channel.sendNoDmWarning("$AUTO_RESPONDER $mode")
+            return
+        }
+
         when (mode) {
             in AUTO_RESPONDER_MODE_ADD -> {
                 if (command == null) {
@@ -128,16 +141,12 @@ class Bot(
                     return
                 }
 
-                if (config.commands.containsKey(command)) {
+                if (DynamicCommandRepository.addCommandByGuild(guild, command)) {
+                    message.respond("Successfully added auto-responder for '$command'")
+                    logger.debug("${message.author.username} added auto-responder $command")
+                } else {
                     message.respond("Auto-responder for '$command' already exists")
-                    return
                 }
-
-                config.commands[command] = HashSet()
-                configHelpers.postPersistConfig()
-
-                message.respond("Successfully added auto-responder for '$command'")
-                logger.debug("${message.author.username} added auto-responder $command")
             }
             in AUTO_RESPONDER_MODE_LIST -> {
                 if (args.size != 1) {
@@ -145,12 +154,12 @@ class Bot(
                     return
                 }
 
-                val commands = config.commands.keys.sorted()
+                val commands = DynamicCommandRepository.getCommandsByGuild(guild)
 
                 message.respond {
                     title = "Available auto-responders"
-                    description = commands.joinToString("\n") { cmd ->
-                        "\u2022 ` $cmd ` - ${config.commands[cmd]?.size ?: 0} entries"
+                    description = commands.joinToString("\n") { (cmd, count) ->
+                        "\u2022 ` $cmd ` - $count entries"
                     }
                 }
             }
@@ -160,14 +169,12 @@ class Bot(
                     return
                 }
 
-                if (config.commands.remove(command) == null) {
+                if (DynamicCommandRepository.removeCommandByGuild(guild, command)) {
+                    message.respond("Successfully removed auto-responder for '$command'")
+                    logger.debug("${message.author.username} removed auto-responder $command")
+                } else {
                     message.respond("Unknown auto-responder '$command'")
-                    return
                 }
-                configHelpers.postPersistConfig()
-
-                message.respond("Successfully removed auto-responder for '$command'")
-                logger.debug("${message.author.username} removed auto-responder $command")
             }
             else -> {
                 message.channel.showHelp()
@@ -180,6 +187,11 @@ class Bot(
         // Only owner, admins and managers can add new entries
         if (!checkManager(config, message)) return
 
+        val guild = message.guildId ?: run {
+            message.channel.sendNoDmWarning(ADD)
+            return
+        }
+
         val args = message.args(limit = 3)
 
         val command = args.getOrNull(0)?.trim() ?: run {
@@ -187,7 +199,7 @@ class Bot(
             return
         }
 
-        val commandEntries = config.commands[command] ?: run {
+        val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
             message.respond("Unknown auto-responder '$command'")
             return
         }
@@ -201,9 +213,8 @@ class Bot(
         val singleEntry = entries.singleOrNull()
         if (singleEntry != null && !singleEntry.contains(Regex("""\s"""))) {
             imageResolver.resolve(singleEntry).onSuccess { images ->
-                // Resolved images, add to map
-                if (commandEntries.addAll(images)) {
-                    configHelpers.postPersistConfig()
+                // Resolved images, add to database
+                if (DynamicCommandRepository.addCommandEntries(commandEntity, images)) {
                     val imagesString = images.joinToString(prefix = "\n", separator = "\n")
                     message.respond("Resolved ${images.size} image(s) and added them to `$command`\n$imagesString")
                     logger.logAdd(message.author, command, images)
@@ -232,8 +243,7 @@ class Bot(
         val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
 
         // Add content to commands map
-        if (commandEntries.addAll(normalizedEntries)) {
-            configHelpers.postPersistConfig()
+        if (DynamicCommandRepository.addCommandEntries(commandEntity, normalizedEntries)) {
             message.react(config.getAckEmoji())
             logger.logAdd(message.author, command, normalizedEntries)
         } else {
@@ -245,6 +255,11 @@ class Bot(
         // Only owner, admins and managers can remove entries
         if (!checkManager(config, message)) return
 
+        val guild = message.guildId ?: run {
+            message.channel.sendNoDmWarning(REMOVE)
+            return
+        }
+
         val args = message.args(limit = 3)
 
         val command = args.getOrNull(0)?.trim() ?: run {
@@ -252,7 +267,7 @@ class Bot(
             return
         }
 
-        val commandEntries = config.commands[command] ?: run {
+        val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
             message.respond("Unknown auto-responder '$command'")
             return
         }
@@ -266,8 +281,7 @@ class Bot(
         val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
 
         // Remove content from commands map
-        if (commandEntries.removeAll(normalizedEntries)) {
-            configHelpers.postPersistConfig()
+        if (DynamicCommandRepository.removeCommandEntries(commandEntity, normalizedEntries)) {
             message.react(config.getAckEmoji())
             logger.logRemove(message.author, command, normalizedEntries)
         } else {
@@ -335,4 +349,7 @@ class Bot(
             )
         )
     }
+
+    private suspend fun ChannelClient.sendNoDmWarning(command: String) =
+        sendMessage("Command `$command` cannot be used in DMs.")
 }

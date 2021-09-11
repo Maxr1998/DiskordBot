@@ -3,5 +3,6 @@
 
 build
 config.json*
+bot.db
 Dockerfile
 gradlew.bat

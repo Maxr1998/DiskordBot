@@ -4,13 +4,9 @@ import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
-import de.maxr1998.diskord.config.Config
-import java.security.SecureRandom
-import kotlin.random.Random
-import kotlin.random.asKotlinRandom
+import de.maxr1998.diskord.model.repository.DynamicCommandRepository
 
-class DynamicCommandsModule(private val config: Config) {
-    private val random: Random = SecureRandom().asKotlinRandom()
+class DynamicCommandsModule {
 
     /**
      * Installs the feature that provides support for dynamic commands
@@ -28,9 +24,10 @@ class DynamicCommandsModule(private val config: Config) {
             return
         }
 
+        val guild = message.guildId ?: return
         val command = message.content.substring(Constants.COMMAND_PREFIX.length)
-        val commandEntries = config.commands[command] ?: return
-        val content = commandEntries.randomOrNull(random) ?: return
+        val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: return
+        val content = DynamicCommandRepository.getRandomEntry(commandEntity) ?: return
 
         message.respond(content)
     }
