@@ -143,6 +143,6 @@ class ImageResolver(
         private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
 
-        private val TWITTER_URL_REGEX = Regex("""https?://(?:(?:www|mobile)\.)?(twitter\.com/[A-Za-z_\d]+/status/[\d]+)(?:\?.*)?""")
+        private val TWITTER_URL_REGEX = Regex("""https?://(?:(?:www|mobile)\.)?(twitter\.com/[A-Za-z_\d]+/status/[\d]+)(?:/|\?.*)?""")
     }
 }
