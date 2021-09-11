@@ -28,6 +28,8 @@ import de.maxr1998.diskord.utils.checkAdmin
 import de.maxr1998.diskord.utils.checkManager
 import de.maxr1998.diskord.utils.checkOwner
 import de.maxr1998.diskord.utils.getAckEmoji
+import de.maxr1998.diskord.utils.logAdd
+import de.maxr1998.diskord.utils.logRemove
 import de.maxr1998.diskord.utils.wrapListIfNotEmpty
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
@@ -224,7 +226,7 @@ class Bot(
                     configHelpers.postPersistConfig()
                     val imagesString = images.joinToString(prefix = "\n", separator = "\n")
                     message.respond("Resolved ${images.size} image(s) and added them to `$command`\n$imagesString")
-                    logAdd(message, command, images)
+                    logger.logAdd(message.author, command, images)
                 } else {
                     message.respond("This content already exists, try a different one!")
                 }
@@ -253,7 +255,7 @@ class Bot(
         if (commandEntries.addAll(normalizedEntries)) {
             configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
-            logAdd(message, command, normalizedEntries)
+            logger.logAdd(message.author, command, normalizedEntries)
         } else {
             message.respond("This content already exists, try a different one!")
         }
@@ -289,8 +291,7 @@ class Bot(
         if (commandEntries.remove(normalizedContent)) {
             configHelpers.postPersistConfig()
             message.react(config.getAckEmoji())
-
-            logger.debug("${message.author.username} removed $normalizedContent from $command")
+            logger.logRemove(message.author, command, listOf(normalizedContent))
         } else {
             message.respond("Content not found, nothing was removed.")
         }
@@ -348,10 +349,5 @@ class Bot(
                 inline = false,
             ),
         )
-    }
-
-    private fun logAdd(message: Message, command: String, entries: List<String>) {
-        val entriesString = entries.joinToString(separator = ",", prefix = "[", postfix = "]")
-        logger.debug("${message.author.username} added $entriesString to $command")
     }
 }
