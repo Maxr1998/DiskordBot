@@ -323,9 +323,16 @@ class Bot(
                 value = """`$COMMAND_PREFIX$ADD <command> <content>`
                           |*or*
                           |Reply to a message with:
-                          |`$COMMAND_PREFIX$ADD <command>`""".trimMargin(),
+                          |`$COMMAND_PREFIX$ADD <command>`
+                          |
+                          |If `<content>` is a link to Twitter, Instagram or an Imgur album, contained images will automatically be resolved!""".trimMargin(),
                 inline = false,
             ),
+            EmbedField(
+                name = "Resolve images from supported URLs",
+                value = """`$COMMAND_PREFIX$RESOLVE <link>`""",
+                inline = false,
+            )
         )
     }
 }
