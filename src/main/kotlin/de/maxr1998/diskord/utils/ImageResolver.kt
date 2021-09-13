@@ -44,8 +44,8 @@ class ImageResolver(
     /**
      * Tries to resolve image urls or images from online services
      */
-    suspend fun resolve(content: String): Result<List<CommandEntryEntity>> = when {
-        content.startsWith(INSTAGRAM_BASE_URL) -> handleInstagramUrl(content)
+    suspend fun resolve(content: String, maySave: Boolean): Result<List<CommandEntryEntity>> = when {
+        content.startsWith(INSTAGRAM_BASE_URL) -> if (maySave) handleInstagramUrl(content) else Status.Forbidden()
         content.matches(TWITTER_URL_REGEX) -> handleTwitterUrl(content.replace(TWITTER_URL_REGEX, "https://$1"))
         content.matches(IMGUR_ALBUM_URL_REGEX) -> handleImgurAlbumUrl(content.replace(IMGUR_ALBUM_URL_REGEX, "$1"))
         else -> Status.Unsupported()
@@ -166,6 +166,7 @@ class ImageResolver(
     sealed class Status : Exception() {
         object Unsupported : Status()
         sealed class Failure : Status()
+        object Forbidden : Failure()
         object RateLimited : Failure()
         object ParsingFailed : Failure()
         object Unknown : Failure()

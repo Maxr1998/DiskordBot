@@ -205,6 +205,8 @@ class Bot(
             return
         }
 
+        val maySaveImages = isOwner(config, message)
+
         val guild = message.guildId ?: run {
             message.channel.sendNoDmWarning(ADD)
             return
@@ -233,7 +235,7 @@ class Bot(
                     var processedAnything = false
                     for (line in resultContent) {
                         // Try to resolve images from the link
-                        imageResolver.resolve(line).onSuccess { imageEntities ->
+                        imageResolver.resolve(line, maySaveImages).onSuccess { imageEntities ->
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
                                 val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", transform = CommandEntryEntity::content)
@@ -248,6 +250,7 @@ class Bot(
                             when (exception) {
                                 is ImageResolver.Status.Failure -> {
                                     val errorText = when (exception) {
+                                        ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
                                         ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
                                         ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
                                         ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
@@ -359,9 +362,11 @@ class Bot(
             return
         }
 
+        val maySaveImages = isOwner(config, message)
+
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
-        imageResolver.resolve(content).onSuccess { images ->
+        imageResolver.resolve(content, maySaveImages).onSuccess { images ->
             for (from in images.indices step Constants.MAX_PREVIEW_IMAGES) {
                 val to = (from + Constants.MAX_PREVIEW_IMAGES).coerceAtMost(images.size)
                 val chunk = images.subList(from, to)
@@ -371,6 +376,7 @@ class Bot(
             require(exception is ImageResolver.Status)
             val errorText = when (exception) {
                 ImageResolver.Status.Unsupported -> "Unsupported content. Try a different link."
+                ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
                 ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
                 ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
                 ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
