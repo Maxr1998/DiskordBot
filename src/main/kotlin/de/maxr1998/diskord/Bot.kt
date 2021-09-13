@@ -30,10 +30,10 @@ import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.diskord.ExtractionResult
 import de.maxr1998.diskord.utils.diskord.args
-import de.maxr1998.diskord.utils.diskord.checkAdmin
-import de.maxr1998.diskord.utils.diskord.checkManager
-import de.maxr1998.diskord.utils.diskord.checkOwner
 import de.maxr1998.diskord.utils.diskord.extractEntries
+import de.maxr1998.diskord.utils.diskord.isAdmin
+import de.maxr1998.diskord.utils.diskord.isManager
+import de.maxr1998.diskord.utils.diskord.isOwner
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.isUrl
 import de.maxr1998.diskord.utils.logAdd
@@ -96,7 +96,10 @@ class Bot(
 
     private suspend fun BotContext.promoteAdmin(message: Message) {
         // Admins can only be promoted by the owner
-        if (!checkOwner(config, message)) return
+        if (!isOwner(config, message)) {
+            message.reply("Insufficient permissions")
+            return
+        }
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -110,7 +113,10 @@ class Bot(
 
     private suspend fun BotContext.promoteManager(message: Message) {
         // Managers can only be promoted by the owner and admins
-        if (!checkAdmin(config, message)) return
+        if (!isAdmin(config, message)) {
+            message.reply("Insufficient permissions")
+            return
+        }
 
         // Add mentioned users as managers
         val users = message.usersMentioned.map(User::id)
@@ -124,7 +130,10 @@ class Bot(
 
     private suspend fun BotContext.autoResponder(message: Message) {
         // Only owner and admins can add new auto-responders
-        if (!checkAdmin(config, message)) return
+        if (!isAdmin(config, message)) {
+            message.reply("Only admins can manage auto-responders")
+            return
+        }
 
         val args = message.words.drop(1)
         if (args.size !in 1..2) {
@@ -191,7 +200,10 @@ class Bot(
 
     private suspend fun BotContext.addEntry(message: Message) {
         // Only owner, admins and managers can add new entries
-        if (!checkManager(config, message)) return
+        if (!isManager(config, message)) {
+            message.reply("Only managers can add entries")
+            return
+        }
 
         val guild = message.guildId ?: run {
             message.channel.sendNoDmWarning(ADD)
@@ -297,7 +309,10 @@ class Bot(
 
     private suspend fun BotContext.removeEntry(message: Message) {
         // Only owner, admins and managers can remove entries
-        if (!checkManager(config, message)) return
+        if (!isManager(config, message)) {
+            message.reply("Only managers can remove entries")
+            return
+        }
 
         val guild = message.guildId ?: run {
             message.channel.sendNoDmWarning(REMOVE)
@@ -339,7 +354,10 @@ class Bot(
 
     private suspend fun BotContext.resolve(message: Message) {
         // Only managers may use the bot to resolve links
-        if (!checkManager(config, message)) return
+        if (!isManager(config, message)) {
+            message.reply("Only managers can resolve links")
+            return
+        }
 
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
