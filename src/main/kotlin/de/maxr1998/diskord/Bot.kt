@@ -35,6 +35,7 @@ import de.maxr1998.diskord.utils.diskord.checkManager
 import de.maxr1998.diskord.utils.diskord.checkOwner
 import de.maxr1998.diskord.utils.diskord.extractEntries
 import de.maxr1998.diskord.utils.getAckEmoji
+import de.maxr1998.diskord.utils.isUrl
 import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
 import kotlinx.coroutines.delay
@@ -216,33 +217,38 @@ class Bot(
             }
             is ExtractionResult.Lines -> {
                 val resultContent = extractionResult.content
-                if (resultContent.size == 1 && resultContent.first().none(Char::isWhitespace)) {
-                    // Try to resolve images from a single link
-                    imageResolver.resolve(resultContent.first()).onSuccess { imageEntities ->
-                        // Resolved images, add to database
-                        if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
-                            val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", transform = CommandEntryEntity::content)
-                            message.respond("Resolved ${imageEntities.size} image(s) and added them to `$command`\n$imagesString".take(2000))
-                            logger.logAdd(message.author, command, imageEntities)
-                        } else {
-                            message.respond("This content already exists, try a different one!")
-                        }
-                        return
-                    }.onFailure { exception ->
-                        require(exception is ImageResolver.Status)
-                        when (exception) {
-                            is ImageResolver.Status.Failure -> {
-                                val errorText = when (exception) {
-                                    ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
-                                    ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
-                                    ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
-                                }
-                                message.respond(errorText)
-                                return
+                if (resultContent.all { line -> line.none(Char::isWhitespace) && line.isUrl() }) {
+                    var processedAnything = false
+                    for (line in resultContent) {
+                        // Try to resolve images from the link
+                        imageResolver.resolve(line).onSuccess { imageEntities ->
+                            // Resolved images, add to database
+                            if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
+                                val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", transform = CommandEntryEntity::content)
+                                message.respond("Resolved ${imageEntities.size} image(s) from `$line` and added them to `$command`\n$imagesString".take(2000))
+                                logger.logAdd(message.author, command, imageEntities)
+                            } else {
+                                message.respond("All content from `$line` has already been added previously!")
                             }
-                            ImageResolver.Status.Unsupported -> Unit // Continue normally
+                            processedAnything = true
+                        }.onFailure { exception ->
+                            require(exception is ImageResolver.Status)
+                            when (exception) {
+                                is ImageResolver.Status.Failure -> {
+                                    val errorText = when (exception) {
+                                        ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
+                                        ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                                        ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+                                    }
+                                    message.respond(errorText)
+                                    processedAnything = true
+                                }
+                                ImageResolver.Status.Unsupported -> Unit // Continue normally
+                            }
                         }
                     }
+
+                    if (processedAnything) return
                 }
 
                 // Normalize URLs
