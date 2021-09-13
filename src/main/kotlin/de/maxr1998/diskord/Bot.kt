@@ -296,7 +296,7 @@ class Bot(
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
         imageResolver.resolve(content).onSuccess { images ->
-            message.respond(images.joinToString(prefix = Constants.LINE_SEPARATED_CONTENT_TAG, separator = "\n"))
+            message.respond(images.joinToString(separator = "\n"))
         }.onFailure { exception ->
             require(exception is ImageResolver.Status)
             val errorText = when (exception) {

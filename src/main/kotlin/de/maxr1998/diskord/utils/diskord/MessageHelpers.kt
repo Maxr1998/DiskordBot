@@ -3,10 +3,9 @@ package de.maxr1998.diskord.utils.diskord
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotContext
-import de.maxr1998.diskord.Constants
 
 fun Message.args(limit: Int) = content
-    .split(" ", limit = limit)
+    .split(' ', '\n', limit = limit)
     .drop(1)
 
 val Message.attachmentUrlsOrNull: List<String>?
@@ -15,9 +14,11 @@ val Message.attachmentUrlsOrNull: List<String>?
         else null
     }
 
-private fun wrapListIfNotEmpty(content: String): List<String>? = with(content.trim()) {
-    if (isNotEmpty()) listOf(this) else null
-}
+private fun String.splitLinesIfNotBlank(): List<String>? = splitToSequence('\n')
+    .map(String::trim)
+    .filter(String::isNotEmpty)
+    .toList()
+    .takeUnless(List<String>::isEmpty)
 
 suspend fun BotContext.extractEntries(args: List<String>, message: Message): List<String>? = when (args.size) {
     1 -> {
@@ -25,13 +26,8 @@ suspend fun BotContext.extractEntries(args: List<String>, message: Message): Lis
         val repliedMessage = message.reference?.messageId?.let { id -> message.channel.getMessage(id) }
         message.attachmentUrlsOrNull
             ?: repliedMessage?.attachmentUrlsOrNull
-            ?: repliedMessage?.let { msg ->
-                val content = msg.content
-                if (content.startsWith(Constants.LINE_SEPARATED_CONTENT_TAG)) {
-                    content.removePrefix(Constants.LINE_SEPARATED_CONTENT_TAG).split("\n")
-                } else wrapListIfNotEmpty(content)
-            }
+            ?: repliedMessage?.content?.splitLinesIfNotBlank()
     }
-    2 -> wrapListIfNotEmpty(args[1])
+    2 -> args[1].splitLinesIfNotBlank()
     else -> null
 }
