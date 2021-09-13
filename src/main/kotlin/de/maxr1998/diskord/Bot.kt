@@ -25,9 +25,9 @@ import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository
+import de.maxr1998.diskord.services.UrlNormalizer
+import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.utils.DatabaseHelpers
-import de.maxr1998.diskord.utils.ImageResolver
-import de.maxr1998.diskord.utils.UrlNormalizer
 import de.maxr1998.diskord.utils.diskord.ExtractionResult
 import de.maxr1998.diskord.utils.diskord.args
 import de.maxr1998.diskord.utils.diskord.extractEntries

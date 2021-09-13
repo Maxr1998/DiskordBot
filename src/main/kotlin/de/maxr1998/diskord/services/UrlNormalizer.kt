@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.utils
+package de.maxr1998.diskord.services
 
 import de.maxr1998.diskord.Constants.PINTEREST_IMAGE_BASE_URL
 import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL

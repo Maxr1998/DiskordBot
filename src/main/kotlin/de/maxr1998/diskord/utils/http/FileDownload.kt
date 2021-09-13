@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.utils
+package de.maxr1998.diskord.utils.http
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get

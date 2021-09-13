@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.utils
+package de.maxr1998.diskord.services.resolver
 
 import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
@@ -8,6 +8,8 @@ import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.dto.imgur.ImgurImage
 import de.maxr1998.diskord.model.dto.imgur.ImgurResponse
+import de.maxr1998.diskord.services.UrlNormalizer
+import de.maxr1998.diskord.utils.http.downloadFile
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.features.ClientRequestException

@@ -1,8 +1,8 @@
 package de.maxr1998.diskord
 
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.utils.DatabaseHelpers
-import de.maxr1998.diskord.utils.ImageResolver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent
