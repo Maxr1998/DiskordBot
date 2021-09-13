@@ -6,7 +6,6 @@ import com.jessecorbett.diskord.bot.BotContext
 import de.maxr1998.diskord.Constants
 
 fun Message.args(limit: Int) = content
-    .replace("""\S+""", " ")
     .split(" ", limit = limit)
     .drop(1)
 

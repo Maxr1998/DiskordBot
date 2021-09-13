@@ -293,9 +293,7 @@ class Bot(
         // Only managers may use the bot to resolve links
         if (!checkManager(config, message)) return
 
-        val content = message.content
-            .removePrefix("$COMMAND_PREFIX$RESOLVE ")
-            .replace("""\S+""", " ")
+        val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
         imageResolver.resolve(content).onSuccess { images ->
             message.respond(images.joinToString(prefix = Constants.LINE_SEPARATED_CONTENT_TAG, separator = "\n"))
