@@ -2,6 +2,7 @@ package de.maxr1998.diskord.model.repository
 
 import de.maxr1998.diskord.model.database.CommandEntity
 import de.maxr1998.diskord.model.database.CommandEntries
+import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.database.Commands
 import de.maxr1998.diskord.utils.exposed.suspendingTransaction
 import org.jetbrains.exposed.sql.Count
@@ -50,10 +51,13 @@ object DynamicCommandRepository {
         } > 0
     }
 
-    private suspend fun addCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
+    private suspend fun addCommandEntry(commandEntity: CommandEntity, entry: CommandEntryEntity): Boolean = suspendingTransaction {
         CommandEntries.insertIgnoreAndGetId { insert ->
             insert[command] = commandEntity.id
-            insert[content] = entry
+            insert[content] = entry.content
+            insert[type] = entry.type
+            insert[width] = entry.width
+            insert[height] = entry.height
         } != null
     }
 
@@ -63,7 +67,7 @@ object DynamicCommandRepository {
         } > 0
     }
 
-    suspend fun addCommandEntries(commandEntity: CommandEntity, entries: List<String>): Boolean {
+    suspend fun addCommandEntries(commandEntity: CommandEntity, entries: List<CommandEntryEntity>): Boolean {
         return entries.fold(false) { anySuccess, entry ->
             addCommandEntry(commandEntity, entry) || anySuccess
         }

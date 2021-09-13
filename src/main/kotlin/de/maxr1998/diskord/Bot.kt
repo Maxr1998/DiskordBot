@@ -2,6 +2,7 @@ package de.maxr1998.diskord
 
 import com.jessecorbett.diskord.api.channel.ChannelClient
 import com.jessecorbett.diskord.api.channel.EmbedField
+import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
 import com.jessecorbett.diskord.bot.BotContext
@@ -22,10 +23,12 @@ import de.maxr1998.diskord.Command.RESOLVE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository
 import de.maxr1998.diskord.utils.DatabaseHelpers
 import de.maxr1998.diskord.utils.ImageResolver
 import de.maxr1998.diskord.utils.UrlNormalizer
+import de.maxr1998.diskord.utils.diskord.ExtractionResult
 import de.maxr1998.diskord.utils.diskord.args
 import de.maxr1998.diskord.utils.diskord.checkAdmin
 import de.maxr1998.diskord.utils.diskord.checkManager
@@ -36,6 +39,8 @@ import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
+import kotlin.math.max
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -204,48 +209,81 @@ class Bot(
             return
         }
 
-        val entries = extractEntries(args, message) ?: run {
-            message.channel.showHelp()
-            return
-        }
-
-        // Try to resolve images from a single link
-        val singleEntry = entries.singleOrNull()
-        if (singleEntry != null && singleEntry.none(Char::isWhitespace)) {
-            imageResolver.resolve(singleEntry).onSuccess { images ->
-                // Resolved images, add to database
-                if (DynamicCommandRepository.addCommandEntries(commandEntity, images)) {
-                    val imagesString = images.joinToString(prefix = "\n", separator = "\n")
-                    message.respond("Resolved ${images.size} image(s) and added them to `$command`\n$imagesString")
-                    logger.logAdd(message.author, command, images)
-                } else {
-                    message.respond("This content already exists, try a different one!")
-                }
+        val entries = when (val extractionResult = extractEntries(args, message)) {
+            null -> {
+                message.channel.showHelp()
                 return
-            }.onFailure { exception ->
-                require(exception is ImageResolver.Status)
-                when (exception) {
-                    is ImageResolver.Status.Failure -> {
-                        val errorText = when (exception) {
-                            ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
-                            ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
-                            ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+            }
+            is ExtractionResult.Lines -> {
+                val resultContent = extractionResult.content
+                if (resultContent.size == 1 && resultContent.first().none(Char::isWhitespace)) {
+                    // Try to resolve images from a single link
+                    imageResolver.resolve(resultContent.first()).onSuccess { imageEntities ->
+                        // Resolved images, add to database
+                        if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
+                            val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", transform = CommandEntryEntity::content)
+                            message.respond("Resolved ${imageEntities.size} image(s) and added them to `$command`\n$imagesString".take(2000))
+                            logger.logAdd(message.author, command, imageEntities)
+                        } else {
+                            message.respond("This content already exists, try a different one!")
                         }
-                        message.respond(errorText)
                         return
+                    }.onFailure { exception ->
+                        require(exception is ImageResolver.Status)
+                        when (exception) {
+                            is ImageResolver.Status.Failure -> {
+                                val errorText = when (exception) {
+                                    ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
+                                    ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                                    ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+                                }
+                                message.respond(errorText)
+                                return
+                            }
+                            ImageResolver.Status.Unsupported -> Unit // Continue normally
+                        }
                     }
-                    ImageResolver.Status.Unsupported -> Unit // Continue normally
                 }
+
+                // Normalize URLs
+                extractionResult.content.map { content ->
+                    val normalizedUrl = UrlNormalizer.normalizeUrls(content)
+                    CommandEntryEntity.tryUrl(normalizedUrl)
+                }
+            }
+            is ExtractionResult.Attachments -> {
+                val attachments = extractionResult.content
+
+                val entries = attachments.mapNotNull { attachment ->
+                    val url = UrlNormalizer.normalizeUrls(attachment.url)
+                    val width = attachment.imageWidth
+                    val height = attachment.imageHeight
+
+                    when {
+                        width == null || height == null -> CommandEntryEntity.tryUrl(url)
+                        min(width, height) > Constants.MIN_MIN_IMAGE_SIZE && max(width, height) > Constants.MIN_MAX_IMAGE_SIZE -> {
+                            CommandEntryEntity.image(url, width, height)
+                        }
+                        else -> null
+                    }
+                }
+
+                val diff = attachments.size - entries.size
+                if (diff > 0) {
+                    message.respond("Some ($diff) images weren't processed as they didn't fulfill the minimum quality requirements!")
+
+                    // Abort if empty
+                    if (entries.isEmpty()) return
+                }
+
+                entries
             }
         }
 
-        // Normalize URLs
-        val normalizedEntries = entries.map(UrlNormalizer::normalizeUrls)
-
         // Add content to commands map
-        if (DynamicCommandRepository.addCommandEntries(commandEntity, normalizedEntries)) {
+        if (DynamicCommandRepository.addCommandEntries(commandEntity, entries)) {
             message.react(config.getAckEmoji())
-            logger.logAdd(message.author, command, normalizedEntries)
+            logger.logAdd(message.author, command, entries)
         } else {
             message.respond("This content already exists, try a different one!")
         }
@@ -272,9 +310,13 @@ class Bot(
             return
         }
 
-        val entries = extractEntries(args, message) ?: run {
-            message.channel.showHelp()
-            return
+        val entries = when (val extractionResult = extractEntries(args, message)) {
+            null -> {
+                message.channel.showHelp()
+                return
+            }
+            is ExtractionResult.Lines -> extractionResult.content
+            is ExtractionResult.Attachments -> extractionResult.content.map(Attachment::url)
         }
 
         // Normalize URLs
@@ -296,7 +338,7 @@ class Bot(
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
         imageResolver.resolve(content).onSuccess { images ->
-            message.respond(images.joinToString(separator = "\n"))
+            message.respond(images.joinToString(separator = "\n", transform = CommandEntryEntity::content))
         }.onFailure { exception ->
             require(exception is ImageResolver.Status)
             val errorText = when (exception) {

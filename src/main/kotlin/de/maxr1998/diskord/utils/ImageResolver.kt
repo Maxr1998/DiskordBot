@@ -5,6 +5,7 @@ import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.dto.imgur.ImgurImage
 import de.maxr1998.diskord.model.dto.imgur.ImgurResponse
 import io.ktor.client.HttpClient
@@ -43,14 +44,14 @@ class ImageResolver(
     /**
      * Tries to resolve image urls or images from online services
      */
-    suspend fun resolve(content: String): Result<List<String>> = when {
+    suspend fun resolve(content: String): Result<List<CommandEntryEntity>> = when {
         content.startsWith(INSTAGRAM_BASE_URL) -> handleInstagramUrl(content)
         content.matches(TWITTER_URL_REGEX) -> handleTwitterUrl(content.replace(TWITTER_URL_REGEX, "https://$1"))
         content.matches(IMGUR_ALBUM_URL_REGEX) -> handleImgurAlbumUrl(content.replace(IMGUR_ALBUM_URL_REGEX, "$1"))
         else -> Status.Unsupported()
     }
 
-    private suspend fun handleInstagramUrl(url: String): Result<List<String>> {
+    private suspend fun handleInstagramUrl(url: String): Result<List<CommandEntryEntity>> {
         val (postRegex, replacement) = INSTAGRAM_GRAPH_REPLACEMENT
         val postUrl = url.replace(postRegex, replacement)
 
@@ -97,15 +98,15 @@ class ImageResolver(
             urls.mapIndexed { index, url ->
                 val path = "$shortcode-$index.jpg"
                 async {
-                    if (httpClient.downloadFile(url, File(filePath, path))) "$baseUrl/$path" else null
+                    if (httpClient.downloadFile(url, File(filePath, path))) CommandEntryEntity.image("$baseUrl/$path") else null
                 }
             }
-        }
+        }.awaitAll().filterNotNull()
 
-        return Result.success(downloadResults.awaitAll().filterNotNull())
+        return Result.success(downloadResults)
     }
 
-    private suspend fun handleTwitterUrl(url: String): Result<List<String>> {
+    private suspend fun handleTwitterUrl(url: String): Result<List<CommandEntryEntity>> {
         val response = httpClient.get<String>(url) {
             userAgent(Constants.DISCORD_BOT_USER_AGENT)
         }
@@ -123,7 +124,7 @@ class ImageResolver(
                 return@mapNotNull null
             }
 
-            UrlNormalizer.normalizeUrls(content)
+            CommandEntryEntity.image(UrlNormalizer.normalizeUrls(content))
         }
 
         return if (imageUrls.isNotEmpty()) {
@@ -135,7 +136,7 @@ class ImageResolver(
         }
     }
 
-    private suspend fun handleImgurAlbumUrl(albumId: String): Result<List<String>> {
+    private suspend fun handleImgurAlbumUrl(albumId: String): Result<List<CommandEntryEntity>> {
         val response = try {
             httpClient.get<ImgurResponse<ImgurImage>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
                 header(HttpHeaders.Authorization, "Client-ID ${config.imgurClientId}")
@@ -149,7 +150,9 @@ class ImageResolver(
             return Status.Unknown()
         }
 
-        val imageUrls = response.data.map(ImgurImage::link)
+        val imageUrls = response.data.map(ImgurImage::link).map { imageUrl ->
+            CommandEntryEntity.image(imageUrl)
+        }
 
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Imgur album")
