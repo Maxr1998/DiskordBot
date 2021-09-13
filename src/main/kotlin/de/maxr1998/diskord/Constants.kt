@@ -14,4 +14,6 @@ object Constants {
     const val INSTAGRAM_BASE_URL = "https://www.instagram.com"
 
     const val DISCORD_BOT_USER_AGENT = "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)"
+
+    const val MAX_PREVIEW_IMAGES = 5
 }

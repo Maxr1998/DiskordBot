@@ -344,7 +344,11 @@ class Bot(
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
 
         imageResolver.resolve(content).onSuccess { images ->
-            message.respond(images.joinToString(separator = "\n", transform = CommandEntryEntity::content))
+            for (from in images.indices step Constants.MAX_PREVIEW_IMAGES) {
+                val to = (from + Constants.MAX_PREVIEW_IMAGES).coerceAtMost(images.size)
+                val chunk = images.subList(from, to)
+                message.respond(chunk.joinToString(separator = "\n", transform = CommandEntryEntity::content))
+            }
         }.onFailure { exception ->
             require(exception is ImageResolver.Status)
             val errorText = when (exception) {
