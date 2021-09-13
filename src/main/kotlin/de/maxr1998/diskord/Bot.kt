@@ -211,7 +211,7 @@ class Bot(
 
         // Try to resolve images from a single link
         val singleEntry = entries.singleOrNull()
-        if (singleEntry != null && !singleEntry.contains(Regex("""\s"""))) {
+        if (singleEntry != null && singleEntry.none(Char::isWhitespace)) {
             imageResolver.resolve(singleEntry).onSuccess { images ->
                 // Resolved images, add to database
                 if (DynamicCommandRepository.addCommandEntries(commandEntity, images)) {
