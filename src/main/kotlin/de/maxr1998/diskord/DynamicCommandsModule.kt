@@ -20,8 +20,10 @@ class DynamicCommandsModule {
     }
 
     private suspend fun BotContext.handleMessage(message: Message) {
-        if (!message.content.startsWith(Constants.COMMAND_PREFIX) || message.isFromBot) {
-            return
+        when {
+            !message.content.startsWith(Constants.COMMAND_PREFIX) -> return
+            message.content.any(Char::isWhitespace) -> return
+            message.isFromBot -> return
         }
 
         val guild = message.guildId ?: return
