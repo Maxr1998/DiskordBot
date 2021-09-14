@@ -1,7 +1,7 @@
 [versions]
 koin = "3.1.2"
 coroutines = "1.5.1"
-diskord = "2.1.0-SNAPSHOT"
+diskord = "2.1.0"
 ktor = "1.6.3"
 exposed = "0.33.1"
 sqlitejdbc = "3.36.0.1"
