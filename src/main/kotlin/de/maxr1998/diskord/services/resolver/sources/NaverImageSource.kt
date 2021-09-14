@@ -74,6 +74,6 @@ class NaverImageSource(
     }
 
     companion object {
-        private val NAVER_URL_REGEX = Regex("""https?://(?:m\.)?(post\.naver\.com/viewer/postView\.nhn\?volumeNo=[\d]+)""")
+        private val NAVER_URL_REGEX = Regex("""https?://(?:m\.)?(post\.naver\.com/viewer/postView\.(?:naver|nhn)\?volumeNo=[\d]+)(?:&memberNo=[\d]+)?""")
     }
 }
