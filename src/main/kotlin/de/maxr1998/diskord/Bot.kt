@@ -211,7 +211,7 @@ class Bot(
             return
         }
 
-        val args = message.args(limit = 3)
+        val args = message.args(limit = 2)
 
         val command = args.getOrNull(0)?.trim() ?: run {
             message.channel.showHelp()
@@ -322,7 +322,7 @@ class Bot(
             return
         }
 
-        val args = message.args(limit = 3)
+        val args = message.args(limit = 2)
 
         val command = args.getOrNull(0)?.trim() ?: run {
             message.channel.showHelp()

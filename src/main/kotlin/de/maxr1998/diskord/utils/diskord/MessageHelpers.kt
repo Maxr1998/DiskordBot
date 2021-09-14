@@ -6,7 +6,7 @@ import com.jessecorbett.diskord.bot.BotContext
 import de.maxr1998.diskord.utils.splitLinesIfNotBlank
 
 fun Message.args(limit: Int) = content
-    .split(' ', '\n', limit = limit)
+    .split(' ', '\n', limit = limit + 1)
     .drop(1)
 
 sealed class ExtractionResult {
