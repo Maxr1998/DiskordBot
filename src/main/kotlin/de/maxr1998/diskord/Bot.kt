@@ -237,7 +237,7 @@ class Bot(
                         imageResolver.resolve(line, maySaveImages).onSuccess { imageEntities ->
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
-                                val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", transform = CommandEntryEntity::content)
+                                val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
                                 message.respond("Resolved ${imageEntities.size} image(s) from `$line` and added them to `$command`\n$imagesString".take(2000))
                                 logger.logAdd(message.author, command, imageEntities)
                             } else {
