@@ -1,7 +1,6 @@
 package de.maxr1998.diskord
 
 import com.jessecorbett.diskord.api.channel.ChannelClient
-import com.jessecorbett.diskord.api.channel.EmbedField
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
@@ -17,6 +16,8 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
+import de.maxr1998.diskord.Command.HELP
+import de.maxr1998.diskord.Command.HELP_ADMIN
 import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.REMOVE_SHORT
 import de.maxr1998.diskord.Command.RESOLVE
@@ -82,7 +83,7 @@ class Bot(
                 command(RESOLVE) { message -> resolve(message) }
 
                 // Help
-                command(Command.HELP) { message -> message.channel.showHelp() }
+                command(HELP) { message -> helpCommand(message) }
             }
 
             // Dynamic commands
@@ -136,7 +137,7 @@ class Bot(
 
         val args = message.words.drop(1)
         if (args.size !in 1..2) {
-            message.channel.showHelp()
+            message.channel.showHelp(HELP_ADMIN)
             return
         }
 
@@ -151,7 +152,7 @@ class Bot(
         when (mode) {
             in AUTO_RESPONDER_MODE_ADD -> {
                 if (command == null) {
-                    message.channel.showHelp()
+                    message.channel.showHelp(HELP_ADMIN)
                     return
                 }
 
@@ -164,7 +165,7 @@ class Bot(
             }
             in AUTO_RESPONDER_MODE_LIST -> {
                 if (args.size != 1) {
-                    message.channel.showHelp()
+                    message.channel.showHelp(HELP_ADMIN)
                     return
                 }
 
@@ -179,7 +180,7 @@ class Bot(
             }
             in AUTO_RESPONDER_MODE_REMOVE -> {
                 if (command == null) {
-                    message.channel.showHelp()
+                    message.channel.showHelp(HELP_ADMIN)
                     return
                 }
 
@@ -214,7 +215,7 @@ class Bot(
         val args = message.args(limit = 2)
 
         val command = args.getOrNull(0)?.trim() ?: run {
-            message.channel.showHelp()
+            message.channel.showHelp(ADD)
             return
         }
 
@@ -225,7 +226,7 @@ class Bot(
 
         val entries = when (val extractionResult = extractEntries(args, message)) {
             null -> {
-                message.channel.showHelp()
+                message.channel.showHelp(ADD)
                 return
             }
             is ExtractionResult.Lines -> {
@@ -325,7 +326,7 @@ class Bot(
         val args = message.args(limit = 2)
 
         val command = args.getOrNull(0)?.trim() ?: run {
-            message.channel.showHelp()
+            message.channel.showHelp(REMOVE)
             return
         }
 
@@ -336,7 +337,7 @@ class Bot(
 
         val entries = when (val extractionResult = extractEntries(args, message)) {
             null -> {
-                message.channel.showHelp()
+                message.channel.showHelp(REMOVE)
                 return
             }
             is ExtractionResult.Lines -> extractionResult.content
@@ -385,43 +386,17 @@ class Bot(
         }
     }
 
-    private suspend fun ChannelClient.showHelp() = sendEmbed {
-        title = "Usage"
-        description = "All commands that the bot provides."
+    private suspend fun BotContext.helpCommand(message: Message) {
+        val args = message.args(limit = 1)
+
+        message.channel.showHelp(command = args.getOrNull(0))
+    }
+
+    private suspend fun ChannelClient.showHelp(command: String? = null) = sendEmbed {
+        title = HELP_TITLE
         color = 0xA2E4B8
 
-        fields = mutableListOf(
-            EmbedField(
-                name = "Add auto-responder - *admin only*",
-                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_ADD[0]} <command>`""",
-                inline = false,
-            ),
-            EmbedField(
-                name = "Show auto-responders - *admin only*",
-                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]} <command>`""",
-                inline = false,
-            ),
-            EmbedField(
-                name = "Remove auto-responder - *admin only*",
-                value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_REMOVE[0]} <command>`""",
-                inline = false,
-            ),
-            EmbedField(
-                name = "Add entry to existing responder",
-                value = """`$COMMAND_PREFIX$ADD <command> <content>`
-                          |*or*
-                          |Reply to a message with:
-                          |`$COMMAND_PREFIX$ADD <command>`
-                          |
-                          |If `<content>` is a link to Twitter, Instagram or an Imgur album, contained images will automatically be resolved!""".trimMargin(),
-                inline = false,
-            ),
-            EmbedField(
-                name = "Resolve images from supported URLs",
-                value = """`$COMMAND_PREFIX$RESOLVE <link>`""",
-                inline = false,
-            )
-        )
+        buildEmbed(command)
     }
 
     private suspend fun ChannelClient.sendNoDmWarning(command: String) =

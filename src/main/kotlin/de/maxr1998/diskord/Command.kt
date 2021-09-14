@@ -24,4 +24,5 @@ object Command {
 
     // Help
     const val HELP = "help"
+    const val HELP_ADMIN = "admin"
 }
