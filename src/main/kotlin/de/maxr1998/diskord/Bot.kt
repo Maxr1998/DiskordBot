@@ -40,7 +40,6 @@ import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import kotlin.math.max
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
@@ -282,16 +281,17 @@ class Bot(
 
                     when {
                         width == null || height == null -> CommandEntryEntity.tryUrl(url)
-                        min(width, height) > Constants.MIN_MIN_IMAGE_SIZE && max(width, height) > Constants.MIN_MAX_IMAGE_SIZE -> {
-                            CommandEntryEntity.image(url, width, height)
-                        }
+                        min(width, height) >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, width, height)
                         else -> null
                     }
                 }
 
                 val diff = attachments.size - entries.size
                 if (diff > 0) {
-                    message.respond("Some ($diff) images weren't processed as they didn't fulfill the minimum quality requirements!")
+                    message.respond(
+                        "$diff of ${attachments.size} attachments weren't added as they didn't fulfill the minimum resolution requirements:\n" +
+                            "\u2022 ${Constants.MIN_IMAGE_SIZE}x${Constants.MIN_IMAGE_SIZE} pixels"
+                    )
 
                     // Abort if empty
                     if (entries.isEmpty()) return

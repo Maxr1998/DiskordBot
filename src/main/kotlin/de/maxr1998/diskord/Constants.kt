@@ -6,8 +6,7 @@ object Constants {
     const val COMMAND_PREFIX = "%"
     const val DEFAULT_ACK_EMOJI = "\uD83D\uDC4D"
 
-    const val MIN_MIN_IMAGE_SIZE = 800
-    const val MIN_MAX_IMAGE_SIZE = 1000
+    const val MIN_IMAGE_SIZE = 360
 
     const val TWITTER_IMAGE_BASE_URL = "https://pbs.twimg.com/media/"
     const val PINTEREST_IMAGE_BASE_URL = "https://i.pinimg.com"
