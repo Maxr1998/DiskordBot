@@ -241,40 +241,34 @@ class Bot(
                         else -> urls.add(url)
                     }
                 }
-                if (urls.isNotEmpty()) {
-                    var processedAnything = false
-
-                    for (url in urls) {
-                        // Try to resolve images from the link
-                        imageResolver.resolve(url.toString(), maySaveImages).onSuccess { imageEntities ->
+                val results = urls.mapNotNull { url ->
+                    imageResolver.resolve(url, maySaveImages).takeUnless { result ->
+                        result.isFailure && result.exceptionOrNull() == ImageResolver.Status.Unsupported
+                    }
+                }
+                if (results.isNotEmpty()) {
+                    for (result in results) {
+                        result.onSuccess { resolved ->
                             // Resolved images, add to database
-                            if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
-                                val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                message.respond("Resolved ${imageEntities.size} image(s) from `$url` and added them to `$command`\n$imagesString".take(2000))
-                                logger.logAdd(message.author, command, imageEntities)
+                            if (DynamicCommandRepository.addCommandEntries(commandEntity, resolved.imageUrls)) {
+                                val imagesString = resolved.imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
+                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from `${resolved.url}` and added them to `$command`\n$imagesString".take(2000))
+                                logger.logAdd(message.author, command, resolved.imageUrls)
                             } else {
-                                message.respond("All content from `$url` has already been added previously!")
+                                message.respond("All content from `${resolved.url}` has already been added previously!")
                             }
-                            processedAnything = true
                         }.onFailure { exception ->
-                            require(exception is ImageResolver.Status)
-                            when (exception) {
-                                is ImageResolver.Status.Failure -> {
-                                    val errorText = when (exception) {
-                                        ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
-                                        ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
-                                        ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
-                                        ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
-                                    }
-                                    message.respond(errorText)
-                                    processedAnything = true
-                                }
-                                ImageResolver.Status.Unsupported -> Unit // Continue normally
+                            require(exception is ImageResolver.Status.Failure)
+                            val errorText = when (exception) {
+                                ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
+                                ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
+                                ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                                ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
                             }
+                            message.respond(errorText)
                         }
                     }
-
-                    if (processedAnything) return
+                    return
                 }
 
                 // Normalize URLs
@@ -377,8 +371,13 @@ class Bot(
         val maySaveImages = isOwner(config, message)
 
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
+        val url = content.trim().toUrlOrNull() ?: run {
+            message.respond("Not a link. Try something else.")
+            return
+        }
 
-        imageResolver.resolve(content, maySaveImages).onSuccess { images ->
+        imageResolver.resolve(url, maySaveImages).onSuccess { resolved ->
+            val images = resolved.imageUrls
             for (from in images.indices step Constants.MAX_PREVIEW_IMAGES) {
                 val to = (from + Constants.MAX_PREVIEW_IMAGES).coerceAtMost(images.size)
                 val chunk = images.subList(from, to)

@@ -12,6 +12,7 @@ import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Url
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
 
@@ -24,11 +25,11 @@ class ImgurAlbumSource(
 
     private val config: Config by configHelpers
 
-    override fun supports(content: String): Boolean =
-        content.matches(IMGUR_ALBUM_URL_REGEX)
+    override fun supports(url: Url): Boolean =
+        url.toString().matches(IMGUR_ALBUM_URL_REGEX)
 
-    override suspend fun resolve(content: String): Result<List<CommandEntryEntity>> {
-        val albumId = content.replace(IMGUR_ALBUM_URL_REGEX, "$1")
+    override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
+        val albumId = url.toString().replace(IMGUR_ALBUM_URL_REGEX, "$1")
         val response = try {
             httpClient.get<ImgurResponse<ImgurImage>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
                 header(HttpHeaders.Authorization, "Client-ID ${config.imgurClientId}")
@@ -49,7 +50,7 @@ class ImgurAlbumSource(
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Imgur album")
 
-            Result.success(imageUrls)
+            Result.success(ImageResolver.Resolved(url, imageUrls))
         } else {
             ImageResolver.Status.Unknown()
         }

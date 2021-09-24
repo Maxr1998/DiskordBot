@@ -2,13 +2,13 @@ package de.maxr1998.diskord.services.resolver.sources
 
 import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.PersistingImageSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Url
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -25,12 +25,12 @@ class InstagramImageSource(
     configHelpers: ConfigHelpers,
 ) : PersistingImageSource(httpClient, configHelpers) {
 
-    override fun supports(content: String): Boolean =
-        content.startsWith(INSTAGRAM_BASE_URL)
+    override fun supports(url: Url): Boolean =
+        url.toString().startsWith(INSTAGRAM_BASE_URL)
 
-    override suspend fun resolve(content: String): Result<List<CommandEntryEntity>> {
+    override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val (postRegex, replacement) = INSTAGRAM_GRAPH_REPLACEMENT
-        val postUrl = content.replace(postRegex, replacement)
+        val postUrl = url.toString().replace(postRegex, replacement)
 
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
@@ -72,7 +72,7 @@ class InstagramImageSource(
         logger.debug("Resolved ${urls.size} images from Instagram post")
 
         // Download images
-        return Result.success(persist(urls, shortcode))
+        return Result.success(ImageResolver.Resolved(url, persist(urls, shortcode)))
     }
 
     companion object {

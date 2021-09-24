@@ -1,11 +1,11 @@
 package de.maxr1998.diskord.services.resolver
 
-import de.maxr1998.diskord.model.database.CommandEntryEntity
 import io.ktor.client.HttpClient
+import io.ktor.http.Url
 
 abstract class ImageSource(protected val httpClient: HttpClient) {
 
-    abstract fun supports(content: String): Boolean
+    abstract fun supports(url: Url): Boolean
 
-    abstract suspend fun resolve(content: String): Result<List<CommandEntryEntity>>
+    abstract suspend fun resolve(url: Url): Result<ImageResolver.Resolved>
 }

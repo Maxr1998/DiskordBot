@@ -7,6 +7,7 @@ import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.http.Url
 import io.ktor.http.userAgent
 import mu.KotlinLogging
 import org.jsoup.Jsoup
@@ -17,17 +18,17 @@ class TwitterImageSource(
     httpClient: HttpClient,
 ) : ImageSource(httpClient) {
 
-    override fun supports(content: String): Boolean =
-        content.matches(TWITTER_URL_REGEX)
+    override fun supports(url: Url): Boolean =
+        url.toString().matches(TWITTER_URL_REGEX)
 
-    override suspend fun resolve(content: String): Result<List<CommandEntryEntity>> {
-        val url = content.replace(TWITTER_URL_REGEX, "https://$1")
+    override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
+        val normalizedUrl = url.toString().replace(TWITTER_URL_REGEX, "https://$1")
 
-        val response = httpClient.get<String>(url) {
+        val response = httpClient.get<String>(normalizedUrl) {
             userAgent(Constants.DISCORD_BOT_USER_AGENT)
         }
 
-        val document = Jsoup.parse(response, url)
+        val document = Jsoup.parse(response, normalizedUrl)
         val metaTags = document.head().getElementsByTag("meta")
 
         val imageUrls = metaTags.mapNotNull { element ->
@@ -46,7 +47,7 @@ class TwitterImageSource(
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Twitter post")
 
-            Result.success(imageUrls)
+            Result.success(ImageResolver.Resolved(url, imageUrls))
         } else {
             ImageResolver.Status.Unknown()
         }

@@ -1,6 +1,7 @@
 package de.maxr1998.diskord.services.resolver
 
 import de.maxr1998.diskord.model.database.CommandEntryEntity
+import io.ktor.http.Url
 
 class ImageResolver(
     private val sources: List<ImageSource>,
@@ -8,14 +9,19 @@ class ImageResolver(
     /**
      * Tries to resolve image urls or images from online services
      */
-    suspend fun resolve(content: String, maySave: Boolean): Result<List<CommandEntryEntity>> {
-        val supportedResolver = sources.find { source -> source.supports(content) }
+    suspend fun resolve(url: Url, maySave: Boolean): Result<Resolved> {
+        val supportedResolver = sources.find { source -> source.supports(url) }
         return when {
             supportedResolver == null -> Status.Unsupported()
             supportedResolver is PersistingImageSource && !maySave -> Status.Forbidden()
-            else -> supportedResolver.resolve(content)
+            else -> supportedResolver.resolve(url)
         }
     }
+
+    data class Resolved(
+        val url: Url,
+        val imageUrls: List<CommandEntryEntity>,
+    )
 
     sealed class Status : Exception() {
         object Unsupported : Status()

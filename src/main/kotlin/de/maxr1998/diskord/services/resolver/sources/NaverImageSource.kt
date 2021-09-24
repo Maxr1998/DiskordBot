@@ -25,18 +25,19 @@ private val logger = KotlinLogging.logger {}
 class NaverImageSource(
     httpClient: HttpClient,
 ) : ImageSource(httpClient) {
-    override fun supports(content: String): Boolean =
-        content.matches(NAVER_URL_REGEX)
 
-    override suspend fun resolve(content: String): Result<List<CommandEntryEntity>> {
-        val url = content.replace(NAVER_URL_REGEX, "https://$1")
+    override fun supports(url: Url): Boolean =
+        url.toString().matches(NAVER_URL_REGEX)
 
-        val document = httpClient.get<HttpStatement>(url).execute { response ->
+    override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
+        val normalizedUrl = url.toString().replace(NAVER_URL_REGEX, "https://$1")
+
+        val document = httpClient.get<HttpStatement>(normalizedUrl).execute { response ->
             if (response.status.isSuccess() && response.contentType()?.withoutParameters() == ContentType.Text.Html) {
                 response.receive<ByteReadChannel>().toInputStream().use { stream ->
                     withContext(Dispatchers.IO) {
                         @Suppress("BlockingMethodInNonBlockingContext")
-                        Jsoup.parse(stream, null, url)
+                        Jsoup.parse(stream, null, normalizedUrl)
                     }
                 }
             } else null
@@ -45,7 +46,7 @@ class NaverImageSource(
         val clipContent = document.body().selectFirst("#__clipContent")
             ?: return ImageResolver.Status.ParsingFailed()
 
-        val innerDocument = Jsoup.parse(clipContent.html(), url)
+        val innerDocument = Jsoup.parse(clipContent.html(), normalizedUrl)
 
         val imageElements = innerDocument.select(".se_component img.se_mediaImage")
         val imageUrls = imageElements.mapNotNull { element ->
@@ -67,7 +68,7 @@ class NaverImageSource(
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Naver post")
 
-            Result.success(imageUrls)
+            Result.success(ImageResolver.Resolved(url, imageUrls))
         } else {
             ImageResolver.Status.Unknown()
         }
