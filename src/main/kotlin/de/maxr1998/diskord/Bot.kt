@@ -35,10 +35,12 @@ import de.maxr1998.diskord.utils.diskord.extractEntries
 import de.maxr1998.diskord.utils.diskord.isAdmin
 import de.maxr1998.diskord.utils.diskord.isManager
 import de.maxr1998.diskord.utils.diskord.isOwner
+import de.maxr1998.diskord.utils.diskord.parsedContentType
 import de.maxr1998.diskord.utils.getAckEmoji
 import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
 import de.maxr1998.diskord.utils.toUrlOrNull
+import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
@@ -282,12 +284,29 @@ class Bot(
 
                 val entries = attachments.mapNotNull { attachment ->
                     val url = UrlNormalizer.normalizeUrls(attachment.url)
+                    val contentType = attachment.parsedContentType
                     val width = attachment.imageWidth
                     val height = attachment.imageHeight
 
+                    if (width == null || height == null || contentType == null) {
+                        return@mapNotNull CommandEntryEntity.tryUrl(url)
+                    }
+
+                    val minSize = min(width, height)
+
                     when {
-                        width == null || height == null -> CommandEntryEntity.tryUrl(url)
-                        min(width, height) >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, width, height)
+                        contentType.match(ContentType.Image.GIF) -> when {
+                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.gif(url, width, height)
+                            else -> null
+                        }
+                        contentType.match(ContentType.Image.Any) -> when {
+                            minSize >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, width, height)
+                            else -> null
+                        }
+                        contentType.match(ContentType.Video.Any) -> when {
+                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.video(url, width, height)
+                            else -> null
+                        }
                         else -> null
                     }
                 }
@@ -296,7 +315,8 @@ class Bot(
                 if (diff > 0) {
                     message.respond(
                         "$diff of ${attachments.size} attachments weren't added as they didn't fulfill the minimum resolution requirements:\n" +
-                            "\u2022 ${Constants.MIN_IMAGE_SIZE}x${Constants.MIN_IMAGE_SIZE} pixels"
+                            "\u2022 Images: ${Constants.MIN_IMAGE_SIZE}x${Constants.MIN_IMAGE_SIZE} pixels\n" +
+                            "\u2022 Videos: ${Constants.MIN_VIDEO_SIZE}x${Constants.MIN_VIDEO_SIZE} pixels"
                     )
 
                     // Abort if empty
