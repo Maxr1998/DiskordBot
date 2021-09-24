@@ -11,7 +11,7 @@ import java.sql.Connection
 
 class DatabaseHelpers(private val databaseFile: File) {
     fun setup() {
-        Database.connect("jdbc:sqlite:${databaseFile.absolutePath}?foreign_keys=on", "org.sqlite.JDBC")
+        Database.connect("jdbc:sqlite:${databaseFile.absolutePath}?foreign_keys=on&journal_mode=WAL", "org.sqlite.JDBC")
         TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
     }
 
