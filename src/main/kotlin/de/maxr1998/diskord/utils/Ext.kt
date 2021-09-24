@@ -16,6 +16,15 @@ fun String.splitLinesIfNotBlank(): List<String>? = splitToSequence('\n')
     .toList()
     .takeUnless(List<String>::isEmpty)
 
+fun String.toUrlOrNull(): Url? = when {
+    any(Char::isWhitespace) -> null
+    else -> try {
+        Url(this)
+    } catch (e: URLParserException) {
+        null
+    }
+}
+
 fun String.isUrl(): Boolean = try {
     Url(this)
     true

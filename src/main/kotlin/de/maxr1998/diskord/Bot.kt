@@ -36,9 +36,10 @@ import de.maxr1998.diskord.utils.diskord.isAdmin
 import de.maxr1998.diskord.utils.diskord.isManager
 import de.maxr1998.diskord.utils.diskord.isOwner
 import de.maxr1998.diskord.utils.getAckEmoji
-import de.maxr1998.diskord.utils.isUrl
 import de.maxr1998.diskord.utils.logAdd
 import de.maxr1998.diskord.utils.logRemove
+import de.maxr1998.diskord.utils.toUrlOrNull
+import io.ktor.http.Url
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import kotlin.math.min
@@ -230,19 +231,29 @@ class Bot(
                 return
             }
             is ExtractionResult.Lines -> {
-                val resultContent = extractionResult.content
-                if (resultContent.all { line -> line.none(Char::isWhitespace) && line.isUrl() }) {
+                val urls = mutableListOf<Url>()
+                for (line in extractionResult.content) {
+                    when (val url = line.toUrlOrNull()) {
+                        null -> {
+                            urls.clear()
+                            break
+                        }
+                        else -> urls.add(url)
+                    }
+                }
+                if (urls.isNotEmpty()) {
                     var processedAnything = false
-                    for (line in resultContent) {
+
+                    for (url in urls) {
                         // Try to resolve images from the link
-                        imageResolver.resolve(line, maySaveImages).onSuccess { imageEntities ->
+                        imageResolver.resolve(url.toString(), maySaveImages).onSuccess { imageEntities ->
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntity, imageEntities)) {
                                 val imagesString = imageEntities.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                message.respond("Resolved ${imageEntities.size} image(s) from `$line` and added them to `$command`\n$imagesString".take(2000))
+                                message.respond("Resolved ${imageEntities.size} image(s) from `$url` and added them to `$command`\n$imagesString".take(2000))
                                 logger.logAdd(message.author, command, imageEntities)
                             } else {
-                                message.respond("All content from `$line` has already been added previously!")
+                                message.respond("All content from `$url` has already been added previously!")
                             }
                             processedAnything = true
                         }.onFailure { exception ->
