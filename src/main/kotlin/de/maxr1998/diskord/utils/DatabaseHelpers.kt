@@ -2,6 +2,7 @@ package de.maxr1998.diskord.utils
 
 import de.maxr1998.diskord.model.database.CommandEntries
 import de.maxr1998.diskord.model.database.Commands
+import de.maxr1998.diskord.model.database.Entries
 import de.maxr1998.diskord.utils.exposed.suspendingTransaction
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -19,6 +20,7 @@ class DatabaseHelpers(private val databaseFile: File) {
         SchemaUtils.create(
             Commands,
             CommandEntries,
+            Entries,
         )
     }
 }

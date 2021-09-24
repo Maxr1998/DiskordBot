@@ -4,10 +4,13 @@ import de.maxr1998.diskord.model.database.CommandEntity
 import de.maxr1998.diskord.model.database.CommandEntries
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.database.Commands
+import de.maxr1998.diskord.model.database.Entries
 import de.maxr1998.diskord.utils.exposed.suspendingTransaction
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.insertIgnoreAndGetId
 import org.jetbrains.exposed.sql.select
 import java.security.SecureRandom
@@ -30,7 +33,7 @@ object DynamicCommandRepository {
     }
 
     suspend fun getCommandsByGuild(guild: String): List<Pair<String, Long>> = suspendingTransaction {
-        val countAlias = Count(CommandEntries.content)
+        val countAlias = Count(CommandEntries.entry)
         Commands.leftJoin(CommandEntries).slice(Commands.id, Commands.command, countAlias).select {
             Commands.guild eq guild
         }.groupBy(Commands.id, Commands.command).orderBy(Commands.command).map { row ->
@@ -46,25 +49,36 @@ object DynamicCommandRepository {
     }
 
     suspend fun removeCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
-        Commands.deleteWhere {
+        (Commands.deleteWhere {
             (Commands.guild eq guild) and (Commands.command eq command)
-        } > 0
+        } > 0).also { removed ->
+            if (removed) cleanEntriesInternal()
+        }
     }
 
-    private suspend fun addCommandEntry(commandEntity: CommandEntity, entry: CommandEntryEntity): Boolean = suspendingTransaction {
-        CommandEntries.insertIgnoreAndGetId { insert ->
+    private suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
+        val existing = getEntryByContentInternal(commandEntryEntity.content)
+
+        val id = existing ?: Entries.insertIgnoreAndGetId { insert ->
+            insert[content] = commandEntryEntity.content
+            insert[type] = commandEntryEntity.type
+            insert[width] = commandEntryEntity.width
+            insert[height] = commandEntryEntity.height
+        } ?: return@suspendingTransaction false // possible race-condition?
+
+        CommandEntries.insertIgnore { insert ->
             insert[command] = commandEntity.id
-            insert[content] = entry.content
-            insert[type] = entry.type
-            insert[width] = entry.width
-            insert[height] = entry.height
-        } != null
+            insert[entry] = id
+        }.insertedCount > 0
     }
 
     private suspend fun removeCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
-        CommandEntries.deleteWhere {
-            (CommandEntries.command eq commandEntity.id) and (CommandEntries.content eq entry)
-        } > 0
+        val id = getEntryByContentInternal(entry) ?: return@suspendingTransaction false
+        (CommandEntries.deleteWhere {
+            (CommandEntries.command eq commandEntity.id) and (CommandEntries.entry eq id)
+        } > 0).also { removed ->
+            if (removed) cleanEntriesInternal()
+        }
     }
 
     suspend fun addCommandEntries(commandEntity: CommandEntity, entries: List<CommandEntryEntity>): Boolean {
@@ -83,11 +97,29 @@ object DynamicCommandRepository {
         val count = CommandEntries.select { CommandEntries.command eq commandEntity.id }.count()
         if (count > 0L) {
             val offset = random.nextLong(count)
-            CommandEntries
+            CommandEntries.innerJoin(Entries)
                 .select { CommandEntries.command eq commandEntity.id }
                 .limit(1, offset)
                 .singleOrNull()
-                ?.get(CommandEntries.content)
+                ?.get(Entries.content)
         } else null
+    }
+
+    private fun getEntryByContentInternal(content: String): EntityID<Long>? {
+        return Entries.slice(Entries.id)
+            .select { Entries.content eq content }
+            .singleOrNull()
+            ?.get(Entries.id)
+    }
+
+    /**
+     * Remove orphaned entries
+     */
+    private fun cleanEntriesInternal() {
+        Entries.deleteWhere {
+            Entries.id inSubQuery Entries.leftJoin(CommandEntries)
+                .slice(Entries.id)
+                .select { CommandEntries.command.isNull() }
+        }
     }
 }

@@ -3,6 +3,7 @@ package de.maxr1998.diskord.model.database
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
 
 private const val MAX_ID_LENGTH = 20 // ceil(log(2^64))
 private const val MAX_COMMAND_LENGTH = 32
@@ -26,14 +27,19 @@ object EntryType {
     const val VIDEO = 4
 }
 
-object CommandEntries : LongIdTable("command_entries") {
+object CommandEntries : Table("command_entries") {
     val command = reference("command", Commands, ReferenceOption.CASCADE, ReferenceOption.CASCADE).index()
-    val content = varchar("content", MAX_CONTENT_LENGTH)
+    val entry = reference("entry", Entries, ReferenceOption.CASCADE, ReferenceOption.CASCADE).index()
+
+    init {
+        uniqueIndex(command, entry)
+    }
+}
+
+object Entries : LongIdTable("entries") {
+    val content = varchar("content", MAX_CONTENT_LENGTH).uniqueIndex()
+    val contentSource = varchar("source", MAX_CONTENT_LENGTH).nullable().default(null).index()
     val type = integer("type").default(EntryType.UNKNOWN).index()
     val width = integer("width").default(0)
     val height = integer("height").default(0)
-
-    init {
-        uniqueIndex(command, content)
-    }
 }
