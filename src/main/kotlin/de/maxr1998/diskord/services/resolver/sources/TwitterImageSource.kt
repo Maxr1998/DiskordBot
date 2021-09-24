@@ -7,6 +7,8 @@ import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.http.Parameters
+import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.userAgent
 import mu.KotlinLogging
@@ -19,16 +21,22 @@ class TwitterImageSource(
 ) : ImageSource(httpClient) {
 
     override fun supports(url: Url): Boolean =
-        url.toString().matches(TWITTER_URL_REGEX)
+        url.host.matches(TWITTER_HOST_REGEX) && url.encodedPath.matches(TWITTER_STATUS_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.toString().replace(TWITTER_URL_REGEX, "https://$1")
+        val normalizedUrl = url.copy(
+            protocol = URLProtocol.HTTPS,
+            host = TWITTER_HOST,
+            parameters = Parameters.Empty,
+            fragment = "",
+            trailingQuery = false,
+        )
 
         val response = httpClient.get<String>(normalizedUrl) {
             userAgent(Constants.DISCORD_BOT_USER_AGENT)
         }
 
-        val document = Jsoup.parse(response, normalizedUrl)
+        val document = Jsoup.parse(response, normalizedUrl.toString())
         val metaTags = document.head().getElementsByTag("meta")
 
         val imageUrls = metaTags.mapNotNull { element ->
@@ -47,13 +55,15 @@ class TwitterImageSource(
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Twitter post")
 
-            Result.success(ImageResolver.Resolved(url, imageUrls))
+            Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
         } else {
             ImageResolver.Status.Unknown()
         }
     }
 
     companion object {
-        private val TWITTER_URL_REGEX = Regex("""https?://(?:(?:www|mobile)\.)?(twitter\.com/[A-Za-z_\d]+/status/[\d]+)(?:/|\?.*)?""")
+        private const val TWITTER_HOST = "twitter.com"
+        private val TWITTER_HOST_REGEX = Regex("""(?:(?:www|mobile)\.)?twitter\.com""")
+        private val TWITTER_STATUS_PATH_REGEX = Regex("""/[A-Za-z_\d]+/status/[\d]+""")
     }
 }

@@ -10,6 +10,7 @@ import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
+import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -27,17 +28,27 @@ class NaverImageSource(
 ) : ImageSource(httpClient) {
 
     override fun supports(url: Url): Boolean =
-        url.toString().matches(NAVER_URL_REGEX)
+        url.host.matches(NAVER_HOST_REGEX) && url.encodedPath.matches(NAVER_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.toString().replace(NAVER_URL_REGEX, "https://$1")
+        val normalizedUrl = url.copy(
+            protocol = URLProtocol.HTTPS,
+            host = NAVER_HOST,
+            parameters = Parameters.build {
+                url.parameters["volumeNo"]?.let { volumeNo ->
+                    append("volumeNo", volumeNo)
+                }
+            },
+            fragment = "",
+            trailingQuery = false,
+        )
 
         val document = httpClient.get<HttpStatement>(normalizedUrl).execute { response ->
             if (response.status.isSuccess() && response.contentType()?.withoutParameters() == ContentType.Text.Html) {
                 response.receive<ByteReadChannel>().toInputStream().use { stream ->
                     withContext(Dispatchers.IO) {
                         @Suppress("BlockingMethodInNonBlockingContext")
-                        Jsoup.parse(stream, null, normalizedUrl)
+                        Jsoup.parse(stream, null, normalizedUrl.toString())
                     }
                 }
             } else null
@@ -46,7 +57,7 @@ class NaverImageSource(
         val clipContent = document.body().selectFirst("#__clipContent")
             ?: return ImageResolver.Status.ParsingFailed()
 
-        val innerDocument = Jsoup.parse(clipContent.html(), normalizedUrl)
+        val innerDocument = Jsoup.parse(clipContent.html(), normalizedUrl.toString())
 
         val imageElements = innerDocument.select(".se_component img.se_mediaImage")
         val imageUrls = imageElements.mapNotNull { element ->
@@ -68,13 +79,15 @@ class NaverImageSource(
         return if (imageUrls.isNotEmpty()) {
             logger.debug("Resolved ${imageUrls.size} images from Naver post")
 
-            Result.success(ImageResolver.Resolved(url, imageUrls))
+            Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
         } else {
             ImageResolver.Status.Unknown()
         }
     }
 
     companion object {
-        private val NAVER_URL_REGEX = Regex("""https?://(?:m\.)?(post\.naver\.com/viewer/postView\.(?:naver|nhn)\?volumeNo=[\d]+)(?:&memberNo=[\d]+)?""")
+        private const val NAVER_HOST = "post.naver.com"
+        private val NAVER_HOST_REGEX = Regex("""(?:m\.)?post\.naver\.com""")
+        private val NAVER_PATH_REGEX = Regex("""/viewer/postView\.(?:naver|nhn)""")
     }
 }

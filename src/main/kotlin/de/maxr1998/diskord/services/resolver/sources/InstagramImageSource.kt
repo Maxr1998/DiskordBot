@@ -1,6 +1,5 @@
 package de.maxr1998.diskord.services.resolver.sources
 
-import de.maxr1998.diskord.Constants.INSTAGRAM_BASE_URL
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.PersistingImageSource
@@ -8,6 +7,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.Parameters
+import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
@@ -26,15 +27,19 @@ class InstagramImageSource(
 ) : PersistingImageSource(httpClient, configHelpers) {
 
     override fun supports(url: Url): Boolean =
-        url.toString().startsWith(INSTAGRAM_BASE_URL)
+        url.host == INSTAGRAM_HOST && url.encodedPath.matches(INSTAGRAM_POST_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val (postRegex, replacement) = INSTAGRAM_GRAPH_REPLACEMENT
-        val postUrl = url.toString().replace(postRegex, replacement)
+        val normalizedUrl = url.copy(
+            protocol = URLProtocol.HTTPS,
+            parameters = Parameters.Empty,
+            fragment = "",
+            trailingQuery = false,
+        )
 
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
-            val response = httpClient.get<HttpResponse>(postUrl) {}
+            val response = httpClient.get<HttpResponse>(normalizedUrl) {}
             when {
                 !response.status.isSuccess() -> return ImageResolver.Status.Unknown()
                 response.call.request.url.encodedPath.startsWith("/accounts/login") -> return ImageResolver.Status.RateLimited()
@@ -72,11 +77,12 @@ class InstagramImageSource(
         logger.debug("Resolved ${urls.size} images from Instagram post")
 
         // Download images
-        return Result.success(ImageResolver.Resolved(url, persist(urls, shortcode)))
+        return Result.success(ImageResolver.Resolved(normalizedUrl, persist(urls, shortcode)))
     }
 
     companion object {
-        private val INSTAGRAM_GRAPH_REPLACEMENT = Regex("""($INSTAGRAM_BASE_URL/p/[^/]+/).*""") to "$1"
+        private const val INSTAGRAM_HOST = "www.instagram.com"
+        private val INSTAGRAM_POST_PATH_REGEX = Regex("""/p/[^/]+/?""")
         private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
     }
