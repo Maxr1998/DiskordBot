@@ -77,7 +77,7 @@ class InstagramImageSource(
         logger.debug("Resolved ${urls.size} images from Instagram post")
 
         // Download images
-        return Result.success(ImageResolver.Resolved(normalizedUrl, persist(urls, shortcode)))
+        return Result.success(ImageResolver.Resolved(normalizedUrl, persist(urls, normalizedUrl, shortcode)))
     }
 
     companion object {

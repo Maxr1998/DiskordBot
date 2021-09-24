@@ -32,6 +32,7 @@ import de.maxr1998.diskord.utils.DatabaseHelpers
 import de.maxr1998.diskord.utils.diskord.ExtractionResult
 import de.maxr1998.diskord.utils.diskord.args
 import de.maxr1998.diskord.utils.diskord.extractEntries
+import de.maxr1998.diskord.utils.diskord.getUrl
 import de.maxr1998.diskord.utils.diskord.isAdmin
 import de.maxr1998.diskord.utils.diskord.isManager
 import de.maxr1998.diskord.utils.diskord.isOwner
@@ -276,7 +277,7 @@ class Bot(
                 // Normalize URLs
                 extractionResult.content.map { content ->
                     val normalizedUrl = UrlNormalizer.normalizeUrls(content)
-                    CommandEntryEntity.tryUrl(normalizedUrl)
+                    CommandEntryEntity.tryUrl(normalizedUrl, null)
                 }
             }
             is ExtractionResult.Attachments -> {
@@ -289,22 +290,22 @@ class Bot(
                     val height = attachment.imageHeight
 
                     if (width == null || height == null || contentType == null) {
-                        return@mapNotNull CommandEntryEntity.tryUrl(url)
+                        return@mapNotNull CommandEntryEntity.tryUrl(url, message.getUrl())
                     }
 
                     val minSize = min(width, height)
 
                     when {
                         contentType.match(ContentType.Image.GIF) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.gif(url, width, height)
+                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.gif(url, message.getUrl(), width, height)
                             else -> null
                         }
                         contentType.match(ContentType.Image.Any) -> when {
-                            minSize >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, width, height)
+                            minSize >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, message.getUrl(), width, height)
                             else -> null
                         }
                         contentType.match(ContentType.Video.Any) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.video(url, width, height)
+                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.video(url, message.getUrl(), width, height)
                             else -> null
                         }
                         else -> null

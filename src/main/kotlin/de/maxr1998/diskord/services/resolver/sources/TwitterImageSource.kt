@@ -49,7 +49,7 @@ class TwitterImageSource(
                 return@mapNotNull null
             }
 
-            CommandEntryEntity.image(UrlNormalizer.normalizeUrls(metaContent))
+            CommandEntryEntity.image(UrlNormalizer.normalizeUrls(metaContent), normalizedUrl)
         }
 
         return if (imageUrls.isNotEmpty()) {

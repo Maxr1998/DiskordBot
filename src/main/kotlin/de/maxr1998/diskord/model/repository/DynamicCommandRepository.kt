@@ -61,6 +61,7 @@ object DynamicCommandRepository {
 
         val id = existing ?: Entries.insertIgnoreAndGetId { insert ->
             insert[content] = commandEntryEntity.content
+            insert[contentSource] = commandEntryEntity.contentSource
             insert[type] = commandEntryEntity.type
             insert[width] = commandEntryEntity.width
             insert[height] = commandEntryEntity.height

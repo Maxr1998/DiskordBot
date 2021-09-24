@@ -73,7 +73,7 @@ class NaverImageSource(
                 return@mapNotNull null
             }
 
-            CommandEntryEntity.image(imageUrl.toString())
+            CommandEntryEntity.image(imageUrl.toString(), normalizedUrl)
         }
 
         return if (imageUrls.isNotEmpty()) {

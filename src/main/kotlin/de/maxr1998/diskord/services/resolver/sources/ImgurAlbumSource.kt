@@ -54,7 +54,7 @@ class ImgurAlbumSource(
         }
 
         val imageUrls = response.data.map(ImgurImage::link).map { imageUrl ->
-            CommandEntryEntity.image(imageUrl)
+            CommandEntryEntity.image(imageUrl, normalizedUrl)
         }
 
         return if (imageUrls.isNotEmpty()) {
