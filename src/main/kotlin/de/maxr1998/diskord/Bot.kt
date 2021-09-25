@@ -21,6 +21,7 @@ import de.maxr1998.diskord.Command.HELP_ADMIN
 import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.REMOVE_SHORT
 import de.maxr1998.diskord.Command.RESOLVE
+import de.maxr1998.diskord.Command.SOURCE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
@@ -32,6 +33,7 @@ import de.maxr1998.diskord.utils.DatabaseHelpers
 import de.maxr1998.diskord.utils.diskord.ExtractionResult
 import de.maxr1998.diskord.utils.diskord.args
 import de.maxr1998.diskord.utils.diskord.extractEntries
+import de.maxr1998.diskord.utils.diskord.getRepliedMessage
 import de.maxr1998.diskord.utils.diskord.getUrl
 import de.maxr1998.diskord.utils.diskord.isAdmin
 import de.maxr1998.diskord.utils.diskord.isManager
@@ -89,6 +91,7 @@ class Bot(
                 command(ADD) { message -> addEntry(message) }
                 command(REMOVE) { message -> removeEntry(message) }
                 command(REMOVE_SHORT) { message -> removeEntry(message) }
+                command(SOURCE) { message -> getSource(message) }
 
                 // Helper commands
                 command(RESOLVE) { message -> resolve(message) }
@@ -391,6 +394,26 @@ class Bot(
             logger.logRemove(message.author, command, normalizedEntries)
         } else {
             message.respond("Content not found, nothing was removed.")
+        }
+    }
+
+    private suspend fun BotContext.getSource(message: Message) {
+        val repliedMessage = message.getRepliedMessage(this)
+        if (repliedMessage == null || repliedMessage.author.id != botUser.id) {
+            message.respond("The `$COMMAND_PREFIX$SOURCE` command only works when replying to messages by the bot")
+            return
+        }
+
+        val entry = DynamicCommandRepository.getCommandEntry(repliedMessage.content) ?: run {
+            message.respond("Content not found")
+            return
+        }
+
+        val source = entry.contentSource
+        if (source != null) {
+            message.respond("Found source at $source")
+        } else {
+            message.respond("Missing source for content")
         }
     }
 

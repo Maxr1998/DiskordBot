@@ -18,6 +18,7 @@ object Command {
     const val ADD = "add"
     const val REMOVE = "remove"
     const val REMOVE_SHORT = "rm"
+    const val SOURCE = "source"
 
     // Helper commands
     const val RESOLVE = "resolve"
