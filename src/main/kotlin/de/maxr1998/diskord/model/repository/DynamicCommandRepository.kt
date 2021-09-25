@@ -95,6 +95,19 @@ object DynamicCommandRepository {
         }.insertedCount > 0
     }
 
+    suspend fun getCommandEntry(content: String): CommandEntryEntity? = suspendingTransaction {
+        getEntryByContentInternal(content)?.let { entry ->
+            CommandEntryEntity(
+                id = entry[Entries.id],
+                content = entry[Entries.content],
+                contentSource = entry[Entries.contentSource],
+                type = entry[Entries.type],
+                width = entry[Entries.width],
+                height = entry[Entries.height],
+            )
+        }
+    }
+
     private suspend fun removeCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
         val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
         (CommandEntries.deleteWhere {

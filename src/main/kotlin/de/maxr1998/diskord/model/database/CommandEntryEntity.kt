@@ -5,7 +5,7 @@ import io.ktor.http.Url
 import org.jetbrains.exposed.dao.id.EntityID
 
 data class CommandEntryEntity(
-    val id: EntityID<Int>?,
+    val id: EntityID<Long>?,
     val content: String,
     val contentSource: String?,
     val type: Int,
