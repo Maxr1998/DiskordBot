@@ -14,6 +14,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.insertIgnoreAndGetId
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.statements.UpdateStatement
 import org.jetbrains.exposed.sql.update
 import java.security.SecureRandom
 import kotlin.random.Random
@@ -62,17 +63,20 @@ object DynamicCommandRepository {
         val existing = getEntryByContentInternal(commandEntryEntity.content)
         val id = if (existing != null) {
             val id = existing[Entries.id]
-            Entries.update(where = { Entries.id eq id }) { update ->
-                if (commandEntryEntity.contentSource != null) {
-                    update[contentSource] = commandEntryEntity.contentSource
-                }
-                if (existing[type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) {
-                    update[type] = commandEntryEntity.type
-                }
-                if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) {
-                    update[width] = commandEntryEntity.width
-                    update[height] = commandEntryEntity.height
-                }
+            val updates = mutableListOf<Entries.(UpdateStatement) -> Unit>()
+            if (commandEntryEntity.contentSource != null) updates.add { update ->
+                update[contentSource] = commandEntryEntity.contentSource
+            }
+            if (existing[Entries.type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) updates.add { update ->
+                update[type] = commandEntryEntity.type
+            }
+            if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) updates.add { update ->
+                update[width] = commandEntryEntity.width
+                update[height] = commandEntryEntity.height
+            }
+
+            if (updates.isNotEmpty()) Entries.update(where = { Entries.id eq id }) { update ->
+                updates.forEach { action -> action(update) }
             }
             id
         } else {
