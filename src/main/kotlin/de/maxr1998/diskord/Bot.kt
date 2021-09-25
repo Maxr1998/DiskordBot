@@ -333,7 +333,7 @@ class Bot(
             message.react(config.getAckEmoji())
             logger.logAdd(message.author, command, entries)
         } else {
-            message.respond("This content already exists, try a different one!")
+            message.respond("Content was already added previously - updating with new data if necessary")
         }
     }
 
