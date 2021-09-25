@@ -1,9 +1,11 @@
 package de.maxr1998.diskord
 
 import com.jessecorbett.diskord.api.channel.ChannelClient
+import com.jessecorbett.diskord.api.channel.MessageEdit
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
+import com.jessecorbett.diskord.api.gateway.events.MessageReactionAdd
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.bot.classicCommands
@@ -35,6 +37,7 @@ import de.maxr1998.diskord.utils.diskord.args
 import de.maxr1998.diskord.utils.diskord.extractEntries
 import de.maxr1998.diskord.utils.diskord.getRepliedMessage
 import de.maxr1998.diskord.utils.diskord.getUrl
+import de.maxr1998.diskord.utils.diskord.getUser
 import de.maxr1998.diskord.utils.diskord.isAdmin
 import de.maxr1998.diskord.utils.diskord.isManager
 import de.maxr1998.diskord.utils.diskord.isOwner
@@ -98,6 +101,12 @@ class Bot(
 
                 // Help
                 command(HELP) { message -> helpCommand(message) }
+            }
+
+            registerModule { dispatcher, context ->
+                dispatcher.onMessageReactionAdd { reaction ->
+                    context.onMessageReaction(reaction)
+                }
             }
 
             // Dynamic commands
@@ -467,4 +476,33 @@ class Bot(
 
     private suspend fun ChannelClient.sendNoDmWarning(command: String) =
         sendMessage("Command `$command` cannot be used in DMs.")
+
+    private suspend fun BotContext.onMessageReaction(messageReactionAdd: MessageReactionAdd) {
+        val channelClient = channel(messageReactionAdd.channelId)
+        val message = channelClient.getMessage(messageReactionAdd.messageId)
+        val emoji = messageReactionAdd.emoji
+
+        // Ignore reactions to messages not from the bot
+        if (message.author.id != botUser.id) return
+
+        when (emoji.name) {
+            "\u2753" -> { // ❓
+                val entry = DynamicCommandRepository.getCommandEntry(message.content) ?: return
+                val source = entry.contentSource ?: return
+
+                channelClient.editMessage(message.id, MessageEdit(content = "Source: <$source>\n\n${entry.content}"))
+            }
+            "\u274C", "\u2716\uFE0F" -> { // ❌ ✖
+                val user = messageReactionAdd.getUser(this)
+                if (!isAdmin(config, user)) return
+
+                val guild = messageReactionAdd.guildId ?: return
+                val entry = DynamicCommandRepository.getCommandEntry(message.content) ?: return
+
+                if (DynamicCommandRepository.removeEntryForGuild(entry.content, guild)) {
+                    channelClient.editMessage(message.id, MessageEdit(content = "Removed <${entry.content}>"))
+                }
+            }
+        }
+    }
 }

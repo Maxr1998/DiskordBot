@@ -117,6 +117,16 @@ object DynamicCommandRepository {
         }
     }
 
+    suspend fun removeEntryForGuild(entry: String, guild: String): Boolean = suspendingTransaction {
+        val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
+        val commandsInGuild = Commands.slice(Commands.id).select { Commands.guild eq guild }
+        (CommandEntries.deleteWhere {
+            (CommandEntries.entry eq id) and (CommandEntries.command inSubQuery commandsInGuild)
+        } > 0).also { removed ->
+            if (removed) cleanEntriesInternal()
+        }
+    }
+
     suspend fun addCommandEntries(commandEntity: CommandEntity, entries: List<CommandEntryEntity>): Boolean {
         return entries.fold(false) { anySuccess, entry ->
             addCommandEntry(commandEntity, entry) || anySuccess
