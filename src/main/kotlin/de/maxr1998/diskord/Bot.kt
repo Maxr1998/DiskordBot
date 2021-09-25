@@ -56,6 +56,7 @@ class Bot(
     private val imageResolver: ImageResolver,
 ) {
     private val config: Config by configHelpers
+    private lateinit var botUser: User
 
     suspend fun run() {
         logger.debug("Starting Diskord bot…")
@@ -69,6 +70,12 @@ class Bot(
         databaseHelpers.createSchemas()
 
         bot(config.botToken) {
+            registerModule { dispatcher, context ->
+                dispatcher.onReady {
+                    context.onReady()
+                }
+            }
+
             classicCommands(commandPrefix = COMMAND_PREFIX) {
                 // User management commands
                 command(Command.PROMOTE_ADMIN) { message -> promoteAdmin(message) }
@@ -96,6 +103,11 @@ class Bot(
 
         // Keep application alive
         while (true) delay(100)
+    }
+
+    private suspend fun BotContext.onReady() {
+        botUser = global().getUser()
+        logger.debug("Bot's user id is ${botUser.id}")
     }
 
     private suspend fun BotContext.promoteAdmin(message: Message) {
