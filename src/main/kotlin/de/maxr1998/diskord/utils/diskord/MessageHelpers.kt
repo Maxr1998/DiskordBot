@@ -23,7 +23,7 @@ private inline val Message.attachmentsResultOrNull: ExtractionResult?
 suspend fun BotContext.extractEntries(args: List<String>, message: Message): ExtractionResult? = when (args.size) {
     1 -> {
         // Handle message attachments or replied message attachments or content
-        val repliedMessage = message.reference?.messageId?.let { id -> message.channel.getMessage(id) }
+        val repliedMessage = message.getRepliedMessage(this)
         message.attachmentsResultOrNull
             ?: repliedMessage?.attachmentsResultOrNull
             ?: repliedMessage?.content?.linesResult
