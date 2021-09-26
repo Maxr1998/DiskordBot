@@ -5,6 +5,7 @@ import com.jessecorbett.diskord.api.channel.MessageEdit
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
+import com.jessecorbett.diskord.api.exceptions.DiscordNotFoundException
 import com.jessecorbett.diskord.api.gateway.events.MessageReactionAdd
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
@@ -479,7 +480,12 @@ class Bot(
 
     private suspend fun BotContext.onMessageReaction(messageReactionAdd: MessageReactionAdd) {
         val channelClient = channel(messageReactionAdd.channelId)
-        val message = channelClient.getMessage(messageReactionAdd.messageId)
+        val message = try {
+            channelClient.getMessage(messageReactionAdd.messageId)
+        } catch (e: DiscordNotFoundException) {
+            logger.error("Message ${messageReactionAdd.messageId} not found in ${messageReactionAdd.channelId}", e)
+            return
+        }
         val emoji = messageReactionAdd.emoji
 
         // Ignore reactions to messages not from the bot
@@ -493,7 +499,7 @@ class Bot(
                 channelClient.editMessage(message.id, MessageEdit(content = "Source: <$source>\n\n${entry.content}"))
             }
             "\u274C", "\u2716\uFE0F" -> { // ❌ ✖
-                val user = messageReactionAdd.getUser(this)
+                val user = messageReactionAdd.getUser(this) ?: return
                 if (!isAdmin(config, user)) return
 
                 val guild = messageReactionAdd.guildId ?: return
