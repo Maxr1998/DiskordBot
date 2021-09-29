@@ -11,6 +11,7 @@ import io.ktor.http.Parameters
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -26,6 +27,8 @@ class InstagramImageSource(
     configHelpers: ConfigHelpers,
 ) : PersistingImageSource(httpClient, configHelpers) {
 
+    private val mutex = Mutex()
+
     override fun supports(url: Url): Boolean =
         url.host == INSTAGRAM_HOST && url.encodedPath.matches(INSTAGRAM_POST_PATH_REGEX)
 
@@ -39,6 +42,8 @@ class InstagramImageSource(
 
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
+            mutex.lock()
+
             val response = httpClient.get<HttpResponse>(normalizedUrl) {}
             when {
                 !response.status.isSuccess() -> return ImageResolver.Status.Unknown()
@@ -72,6 +77,8 @@ class InstagramImageSource(
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
             return ImageResolver.Status.Unknown()
+        } finally {
+            mutex.unlock()
         }
 
         logger.debug("Resolved ${urls.size} images from Instagram post")
