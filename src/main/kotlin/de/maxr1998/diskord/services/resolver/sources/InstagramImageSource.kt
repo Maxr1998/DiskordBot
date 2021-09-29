@@ -65,16 +65,18 @@ class InstagramImageSource(
             if (startIndex < 0) return ImageResolver.Status.ParsingFailed()
             val endIndex = body.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
             if (endIndex < 0) return ImageResolver.Status.ParsingFailed()
-            val sharedDataString = body.substring(startIndex + INSTAGRAM_CONTENT_START_MARKER.length, endIndex)
+            val sharedDataString = body.substring(startIndex, endIndex).removeSuffix(")")
             val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
 
             // Ugly, blame complex response JSON structure
-            val shortcodeMedia = sharedData["entry_data"]!!
-                .jsonObject["PostPage"]!!
-                .jsonArray.first()
-                .jsonObject["graphql"]!!
-                .jsonObject["shortcode_media"]!!
-                .jsonObject
+            val graphqlRoot = when {
+                "graphql" in sharedData -> sharedData
+                else -> sharedData["entry_data"]!!
+                    .jsonObject["PostPage"]!!
+                    .jsonArray.first()
+                    .jsonObject
+            }
+            val shortcodeMedia = graphqlRoot["graphql"]!!.jsonObject["shortcode_media"]!!.jsonObject
             val shortcode = shortcodeMedia["shortcode"]!!.jsonPrimitive.content
             val edges = shortcodeMedia["edge_sidecar_to_children"]?.run { jsonObject["edges"]!!.jsonArray }
             val urls = edges?.map { edge ->
@@ -83,6 +85,7 @@ class InstagramImageSource(
 
             shortcode to urls
         } catch (e: NullPointerException) {
+            logger.error("Couldn't parse response")
             return ImageResolver.Status.ParsingFailed()
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
@@ -103,7 +106,7 @@ class InstagramImageSource(
 
         const val INSTAGRAM_HOST = "www.instagram.com"
         private val INSTAGRAM_POST_PATH_REGEX = Regex("""/p/[^/]+/?""")
-        private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
+        private const val INSTAGRAM_CONTENT_START_MARKER = """{"graphql":{"shortcode_media":{"""
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
     }
 }
