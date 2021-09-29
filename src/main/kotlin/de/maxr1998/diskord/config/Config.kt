@@ -9,6 +9,8 @@ data class Config(
     val botToken: String,
     @SerialName("imgur_client_id")
     val imgurClientId: String,
+    @SerialName("instagram_session")
+    val instagramSession: String,
     @SerialName("owner_id")
     val ownerId: String,
     @SerialName("admin_ids")
