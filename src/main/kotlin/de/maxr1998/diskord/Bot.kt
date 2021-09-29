@@ -51,16 +51,18 @@ import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.component.inject
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
 @Suppress("DuplicatedCode")
-class Bot(
-    private val configHelpers: ConfigHelpers,
-    private val databaseHelpers: DatabaseHelpers,
-    private val imageResolver: ImageResolver,
-) {
+class Bot : KoinComponent {
+    private val configHelpers: ConfigHelpers = get()
+    private val databaseHelpers: DatabaseHelpers = get()
+    private val imageResolver: ImageResolver by inject()
     private val config: Config by configHelpers
     private lateinit var botUser: User
 

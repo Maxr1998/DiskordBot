@@ -1,8 +1,8 @@
 package de.maxr1998.diskord
 
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.services.resolver.ImageSource
 import de.maxr1998.diskord.services.resolver.ImageResolver
+import de.maxr1998.diskord.services.resolver.ImageSource
 import de.maxr1998.diskord.services.resolver.sources.ImgurAlbumSource
 import de.maxr1998.diskord.services.resolver.sources.InstagramImageSource
 import de.maxr1998.diskord.services.resolver.sources.NaverImageSource
@@ -24,8 +24,6 @@ import io.ktor.client.features.json.Json as KtorJson
 import io.ktor.client.features.logging.Logger as KtorLogger
 
 val appModule = module {
-    single { Bot(get(), get(), get()) }
-
     single {
         @OptIn(ExperimentalSerializationApi::class)
         Json {
