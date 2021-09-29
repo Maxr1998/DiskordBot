@@ -6,7 +6,10 @@ import de.maxr1998.diskord.services.resolver.PersistingImageSource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
@@ -49,7 +52,9 @@ class InstagramImageSource(
             // Apply cooldown, negative delays are ignored
             delay(lastRequestTimeMillis + COOLDOWN_MS - System.currentTimeMillis())
 
-            val response = httpClient.get<HttpResponse>(normalizedUrl) {}
+            val response = httpClient.get<HttpResponse>(normalizedUrl) {
+                header(HttpHeaders.Accept, ContentType.Text.Html)
+            }
             when {
                 !response.status.isSuccess() -> return ImageResolver.Status.Unknown()
                 response.call.request.url.encodedPath.startsWith("/accounts/login") -> return ImageResolver.Status.RateLimited()
@@ -96,7 +101,7 @@ class InstagramImageSource(
     companion object {
         private const val COOLDOWN_MS = 3000L
 
-        private const val INSTAGRAM_HOST = "www.instagram.com"
+        const val INSTAGRAM_HOST = "www.instagram.com"
         private val INSTAGRAM_POST_PATH_REGEX = Regex("""/p/[^/]+/?""")
         private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
