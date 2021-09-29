@@ -11,6 +11,7 @@ import io.ktor.http.Parameters
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -28,6 +29,7 @@ class InstagramImageSource(
 ) : PersistingImageSource(httpClient, configHelpers) {
 
     private val mutex = Mutex()
+    private var lastRequestTimeMillis = 0L
 
     override fun supports(url: Url): Boolean =
         url.host == INSTAGRAM_HOST && url.encodedPath.matches(INSTAGRAM_POST_PATH_REGEX)
@@ -43,6 +45,9 @@ class InstagramImageSource(
         // Request and parse post metadata from Instagram
         val (shortcode, urls) = try {
             mutex.lock()
+
+            // Apply cooldown, negative delays are ignored
+            delay(lastRequestTimeMillis + COOLDOWN_MS - System.currentTimeMillis())
 
             val response = httpClient.get<HttpResponse>(normalizedUrl) {}
             when {
@@ -78,6 +83,7 @@ class InstagramImageSource(
             logger.error("Error while resolving Instagram URL", e)
             return ImageResolver.Status.Unknown()
         } finally {
+            lastRequestTimeMillis = System.currentTimeMillis()
             mutex.unlock()
         }
 
@@ -88,6 +94,8 @@ class InstagramImageSource(
     }
 
     companion object {
+        private const val COOLDOWN_MS = 3000L
+
         private const val INSTAGRAM_HOST = "www.instagram.com"
         private val INSTAGRAM_POST_PATH_REGEX = Regex("""/p/[^/]+/?""")
         private const val INSTAGRAM_CONTENT_START_MARKER = "window._sharedData = "
