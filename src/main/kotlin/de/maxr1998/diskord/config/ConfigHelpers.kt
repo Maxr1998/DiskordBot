@@ -49,7 +49,7 @@ class ConfigHelpers(
         }
     }
 
-    operator fun getValue(any: Any, property: KProperty<*>): Config = config
+    operator fun getValue(any: Any?, property: KProperty<*>): Config = config
 
     companion object {
         private const val CONFIG_PERSISTENCE_DELAY_MS = 30_000L
