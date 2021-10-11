@@ -8,6 +8,7 @@ import de.maxr1998.diskord.services.resolver.sources.ImgurAlbumSource
 import de.maxr1998.diskord.services.resolver.sources.InstagramImageSource
 import de.maxr1998.diskord.services.resolver.sources.NaverImageSource
 import de.maxr1998.diskord.services.resolver.sources.TwitterImageSource
+import de.maxr1998.diskord.services.resolver.sources.WeiboImageSource
 import de.maxr1998.diskord.utils.DatabaseHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
@@ -85,4 +86,5 @@ val appModule = module {
     single { InstagramImageSource(get(), get(), get()) } bind ImageSource::class
     single { NaverImageSource(get()) } bind ImageSource::class
     single { TwitterImageSource(get()) } bind ImageSource::class
+    single { WeiboImageSource(get(), get()) } bind ImageSource::class
 }
