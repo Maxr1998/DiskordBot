@@ -1,12 +1,17 @@
 package de.maxr1998.diskord
 
+import com.jessecorbett.diskord.AutoGateway
 import com.jessecorbett.diskord.api.channel.ChannelClient
 import com.jessecorbett.diskord.api.channel.MessageEdit
 import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
+import com.jessecorbett.diskord.api.common.UserStatus
 import com.jessecorbett.diskord.api.exceptions.DiscordNotFoundException
 import com.jessecorbett.diskord.api.gateway.events.MessageReactionAdd
+import com.jessecorbett.diskord.api.gateway.model.ActivityType
+import com.jessecorbett.diskord.api.gateway.model.UserStatusActivity
+import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.bot.classicCommands
@@ -25,6 +30,7 @@ import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.REMOVE_SHORT
 import de.maxr1998.diskord.Command.RESOLVE
 import de.maxr1998.diskord.Command.SOURCE
+import de.maxr1998.diskord.Command.STATUS
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
@@ -85,6 +91,9 @@ class Bot : KoinComponent {
             }
 
             classicCommands(commandPrefix = COMMAND_PREFIX) {
+                // Bot management commands
+                command(STATUS) { message -> setStatus(this@bot, message) }
+
                 // User management commands
                 command(Command.PROMOTE_ADMIN) { message -> promoteAdmin(message) }
                 command(Command.PROMOTE_ADMIN_SHORT) { message -> promoteAdmin(message) }
@@ -123,6 +132,42 @@ class Bot : KoinComponent {
     private suspend fun BotContext.onReady() {
         botUser = global().getUser()
         logger.debug("Bot's user id is ${botUser.id}")
+    }
+
+    private suspend fun BotContext.setStatus(botBase: BotBase, message: Message) {
+        // Status can only be set by the owner
+        if (!isOwner(config, message)) {
+            message.reply("Insufficient permissions")
+            return
+        }
+
+        val args = message.args(limit = 2)
+
+        val type = when (args.firstOrNull()) {
+            "game" -> ActivityType.GAME
+            "stream" -> ActivityType.STREAMING
+            "listen" -> ActivityType.LISTENING
+            else -> null
+        }
+
+        val status = when (type) {
+            null -> args.joinToString(" ")
+            else -> {
+                if (args.size < 2) return
+                args[1]
+            }
+        }
+
+        val gateway = BotBase::class.java.getField("gateway").get(botBase) as AutoGateway
+        gateway.setStatus(
+            status = UserStatus.ONLINE,
+            isAfk = false,
+            idleTime = null,
+            activity = UserStatusActivity(
+                name = status,
+                type = type ?: ActivityType.GAME,
+            ),
+        )
     }
 
     private suspend fun BotContext.promoteAdmin(message: Message) {

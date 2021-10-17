@@ -1,6 +1,9 @@
 package de.maxr1998.diskord
 
 object Command {
+    // Bot management
+    const val STATUS = "status"
+
     // User management
     const val PROMOTE_ADMIN = "promoteadmin"
     const val PROMOTE_ADMIN_SHORT = "pa"
