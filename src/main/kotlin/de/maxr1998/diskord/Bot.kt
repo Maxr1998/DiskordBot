@@ -218,7 +218,7 @@ class Bot : KoinComponent {
         }
 
         val mode = args[0]
-        val command = args.getOrNull(1)
+        val command = args.getOrNull(1)?.lowercase()
 
         val guild = message.guildId ?: run {
             message.channel.sendNoDmWarning("$AUTO_RESPONDER $mode")
@@ -290,7 +290,7 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val command = args.getOrNull(0) ?: run {
+        val command = args.getOrNull(0)?.lowercase() ?: run {
             message.channel.showHelp(ADD)
             return
         }
@@ -423,7 +423,7 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val command = args.getOrNull(0) ?: run {
+        val command = args.getOrNull(0)?.lowercase() ?: run {
             message.channel.showHelp(REMOVE)
             return
         }

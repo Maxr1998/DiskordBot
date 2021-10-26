@@ -27,7 +27,7 @@ class DynamicCommandsModule {
         }
 
         val guild = message.guildId ?: return
-        val command = message.content.substring(Constants.COMMAND_PREFIX.length)
+        val command = message.content.substring(Constants.COMMAND_PREFIX.length).lowercase()
         val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: return
         val content = DynamicCommandRepository.getRandomEntry(commandEntity) ?: return
 
