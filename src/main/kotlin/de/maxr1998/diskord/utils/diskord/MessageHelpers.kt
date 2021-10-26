@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package de.maxr1998.diskord.utils.diskord
 
 import com.jessecorbett.diskord.api.common.Attachment
@@ -5,9 +7,34 @@ import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.bot.BotContext
 import de.maxr1998.diskord.utils.splitLinesIfNotBlank
 
-fun Message.args(limit: Int) = content
-    .split(' ', '\n', limit = limit + 1)
+inline fun Message.args(limit: Int): List<String> = content
+    .splitWhitespaceNonEmpty(limit + 1)
     .drop(1)
+
+fun String.splitWhitespaceNonEmpty(limit: Int): List<String> {
+    require(limit >= 0) { "Limit must be non-negative, but was $limit" }
+
+    val result = ArrayList<String>()
+    var start = 0
+
+    for (i in indices) {
+        if (limit > 0 && result.size + 1 == limit) break
+        val c = this[i]
+        if (c.isWhitespace()) {
+            val item = substring(start, i)
+            if (item.isNotEmpty()) {
+                result.add(item)
+            }
+            start = i + 1
+        }
+    }
+
+    if (start < length) {
+        result.add(substring(start))
+    }
+
+    return result
+}
 
 sealed class ExtractionResult {
     class Lines(val content: List<String>) : ExtractionResult()

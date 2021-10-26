@@ -290,7 +290,7 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val command = args.getOrNull(0)?.trim() ?: run {
+        val command = args.getOrNull(0) ?: run {
             message.channel.showHelp(ADD)
             return
         }
@@ -423,7 +423,7 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val command = args.getOrNull(0)?.trim() ?: run {
+        val command = args.getOrNull(0) ?: run {
             message.channel.showHelp(REMOVE)
             return
         }
