@@ -21,6 +21,7 @@ import com.jessecorbett.diskord.util.words
 import de.maxr1998.diskord.Command.ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_HIDE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
@@ -252,6 +253,19 @@ class Bot : KoinComponent {
                     description = commands.joinToString("\n") { (cmd, count) ->
                         "\u2022 ` $cmd ` - $count entries"
                     }
+                }
+            }
+            in AUTO_RESPONDER_MODE_HIDE -> {
+                if (command == null) {
+                    message.channel.showHelp(HELP_ADMIN)
+                    return
+                }
+
+                if (DynamicCommandRepository.hideCommandByGuild(guild, command)) {
+                    message.respond("Successfully hid auto-responder '$command' from list")
+                    logger.debug("${message.author.username} hid auto-responder $command")
+                } else {
+                    message.respond("Unknown auto-responder '$command'")
                 }
             }
             in AUTO_RESPONDER_MODE_REMOVE -> {

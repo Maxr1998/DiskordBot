@@ -12,6 +12,7 @@ private const val MAX_CONTENT_LENGTH = 1024
 object Commands : IntIdTable("commands") {
     val guild = varchar("server", MAX_ID_LENGTH).index()
     val command = varchar("command", MAX_COMMAND_LENGTH)
+    val hidden = bool("hidden").default(false)
 
     init {
         uniqueIndex(guild, command)

@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertIgnore
 import org.jetbrains.exposed.sql.insertIgnoreAndGetId
+import org.jetbrains.exposed.sql.not
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.UpdateStatement
 import org.jetbrains.exposed.sql.update
@@ -38,7 +39,7 @@ object DynamicCommandRepository {
     suspend fun getCommandsByGuild(guild: String): List<Pair<String, Long>> = suspendingTransaction {
         val countAlias = Count(CommandEntries.entry)
         Commands.leftJoin(CommandEntries).slice(Commands.id, Commands.command, countAlias).select {
-            Commands.guild eq guild
+            Commands.guild eq guild and not(Commands.hidden)
         }.groupBy(Commands.id, Commands.command).orderBy(Commands.command).map { row ->
             row[Commands.command] to row[countAlias]
         }
@@ -49,6 +50,12 @@ object DynamicCommandRepository {
             insert[Commands.guild] = guild
             insert[Commands.command] = command
         } != null
+    }
+
+    suspend fun hideCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
+        Commands.update(where = { (Commands.guild eq guild) and (Commands.command eq command) }) { update ->
+            update[hidden] = true
+        } > 0
     }
 
     suspend fun removeCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {

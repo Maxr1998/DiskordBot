@@ -5,6 +5,7 @@ import com.jessecorbett.diskord.api.channel.EmbedField
 import de.maxr1998.diskord.Command.ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_HIDE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.HELP
@@ -87,6 +88,11 @@ fun Embed.buildEmbed(command: String?) {
                 EmbedField(
                     name = "Show auto-responders",
                     value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]} <command>`""",
+                    inline = false,
+                ),
+                EmbedField(
+                    name = "Hide auto-responder",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER $AUTO_RESPONDER_MODE_HIDE <command>`""",
                     inline = false,
                 ),
                 EmbedField(
