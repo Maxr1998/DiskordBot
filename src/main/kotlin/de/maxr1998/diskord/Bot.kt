@@ -304,14 +304,15 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val command = args.getOrNull(0)?.lowercase() ?: run {
+        val commands = args.getOrNull(0)?.lowercase()?.split(',') ?: run {
             message.channel.showHelp(ADD)
             return
         }
 
-        val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
-            message.respond("Unknown auto-responder '$command'")
-            return
+        val commandEntities = commands.mapNotNull { command ->
+            DynamicCommandRepository.getCommandByGuild(guild, command).also { commandEntity ->
+                commandEntity ?: message.respond("Unknown auto-responder '$command'")
+            }
         }
 
         val entries = when (val extractionResult = extractEntries(args, message)) {
@@ -339,10 +340,13 @@ class Bot : KoinComponent {
                     for (result in resolverResults) {
                         result.onSuccess { resolved ->
                             // Resolved images, add to database
-                            if (DynamicCommandRepository.addCommandEntries(commandEntity, resolved.imageUrls)) {
+                            if (DynamicCommandRepository.addCommandEntries(commandEntities, resolved.imageUrls)) {
+                                val commandsString = commands.joinToString { command -> "`$command`" }
                                 val imagesString = resolved.imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to `$command`\n$imagesString".take(2000))
-                                logger.logAdd(message.author, command, resolved.imageUrls)
+                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString".take(2000))
+                                for (command in commands) {
+                                    logger.logAdd(message.author, command, resolved.imageUrls)
+                                }
                             } else {
                                 message.respond("All content from `${resolved.url}` has already been added previously!")
                             }
@@ -415,9 +419,11 @@ class Bot : KoinComponent {
         }
 
         // Add content to commands map
-        if (DynamicCommandRepository.addCommandEntries(commandEntity, entries)) {
+        if (DynamicCommandRepository.addCommandEntries(commandEntities, entries)) {
             message.react(config.getAckEmoji())
-            logger.logAdd(message.author, command, entries)
+            for (command in commands) {
+                logger.logAdd(message.author, command, entries)
+            }
         } else {
             message.respond("Content was already added previously - updating with new data if necessary")
         }

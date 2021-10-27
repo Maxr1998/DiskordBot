@@ -134,10 +134,19 @@ object DynamicCommandRepository {
         }
     }
 
-    suspend fun addCommandEntries(commandEntity: CommandEntity, entries: List<CommandEntryEntity>): Boolean {
-        return entries.fold(false) { anySuccess, entry ->
-            addCommandEntry(commandEntity, entry) || anySuccess
+    /**
+     * Adds all [entries] to all commands in [commandEntities]
+     *
+     * @return true if any changes were made
+     */
+    suspend fun addCommandEntries(commandEntities: List<CommandEntity>, entries: List<CommandEntryEntity>): Boolean {
+        var acc = false
+        for (commandEntity in commandEntities) {
+            for (entry in entries) {
+                acc = addCommandEntry(commandEntity, entry) || acc
+            }
         }
+        return acc
     }
 
     suspend fun removeCommandEntries(commandEntity: CommandEntity, entries: List<String>): Boolean {
