@@ -322,7 +322,7 @@ class Bot : KoinComponent {
             is ExtractionResult.Lines -> {
                 val urls = mutableListOf<Url>()
                 for (line in extractionResult.content) {
-                    when (val url = line.toUrlOrNull()) {
+                    when (val url = line.removeSurrounding("<", ">").toUrlOrNull()) {
                         null -> {
                             urls.clear()
                             break
@@ -330,13 +330,13 @@ class Bot : KoinComponent {
                         else -> urls.add(url)
                     }
                 }
-                val results = urls.mapNotNull { url ->
+                val resolverResults = urls.mapNotNull { url ->
                     imageResolver.resolve(url, maySaveImages).takeUnless { result ->
                         result.isFailure && result.exceptionOrNull() == ImageResolver.Status.Unsupported
                     }
                 }
-                if (results.isNotEmpty()) {
-                    for (result in results) {
+                if (resolverResults.isNotEmpty()) {
+                    for (result in resolverResults) {
                         result.onSuccess { resolved ->
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntity, resolved.imageUrls)) {
@@ -498,7 +498,7 @@ class Bot : KoinComponent {
         val maySaveImages = isOwner(config, message)
 
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
-        val url = content.trim().toUrlOrNull() ?: run {
+        val url = content.trim().removeSurrounding("<", ">").toUrlOrNull() ?: run {
             message.respond("Not a link. Try something else.")
             return
         }
