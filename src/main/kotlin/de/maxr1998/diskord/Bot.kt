@@ -341,7 +341,7 @@ class Bot : KoinComponent {
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntity, resolved.imageUrls)) {
                                 val imagesString = resolved.imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from `${resolved.url}` and added them to `$command`\n$imagesString".take(2000))
+                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to `$command`\n$imagesString".take(2000))
                                 logger.logAdd(message.author, command, resolved.imageUrls)
                             } else {
                                 message.respond("All content from `${resolved.url}` has already been added previously!")
