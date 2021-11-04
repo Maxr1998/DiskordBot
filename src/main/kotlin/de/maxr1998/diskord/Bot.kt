@@ -127,7 +127,7 @@ class Bot : KoinComponent {
         }
 
         // Keep application alive
-        while (true) delay(100)
+        while (true) delay(@Suppress("MagicNumber") 100)
     }
 
     private suspend fun BotContext.onReady() {
@@ -205,6 +205,7 @@ class Bot : KoinComponent {
         }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     private suspend fun BotContext.autoResponder(message: Message) {
         // Only owner and admins can add new auto-responders
         if (!isAdmin(config, message)) {
@@ -288,6 +289,7 @@ class Bot : KoinComponent {
         }
     }
 
+    @Suppress("LongMethod", "ComplexMethod")
     private suspend fun BotContext.addEntry(message: Message) {
         // Only owner, admins and managers can add new entries
         if (!isManager(config, message)) {
@@ -344,7 +346,8 @@ class Bot : KoinComponent {
                             if (DynamicCommandRepository.addCommandEntries(commandEntities, resolved.imageUrls)) {
                                 val commandsString = commands.joinToString { command -> "`$command`" }
                                 val imagesString = resolved.imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                message.respond("Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString".take(2000))
+                                val response = "Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString".take(Constants.MAX_MESSAGE_LENGTH)
+                                message.respond(response)
                                 for (command in commands) {
                                     logger.logAdd(message.author, command, resolved.imageUrls)
                                 }
@@ -547,7 +550,7 @@ class Bot : KoinComponent {
 
     private suspend fun ChannelClient.showHelp(command: String? = null) = sendEmbed {
         title = HELP_TITLE
-        color = 0xA2E4B8
+        color = Constants.HELP_COLOR
 
         buildEmbed(command)
     }

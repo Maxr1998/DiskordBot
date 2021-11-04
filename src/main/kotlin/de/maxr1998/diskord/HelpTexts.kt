@@ -38,7 +38,6 @@ Also, they generally break the de-duplication of the bot, causing duplicate entr
 Attachments work for both the message of the command itself as well as replies. When using them, the content of the message itself is ignored.
 """
 
-
 const val REMOVE_DESC = """Remove entries from a responder.
 Works similar to `$ADD`, but instead removes entries.
 
@@ -66,6 +65,7 @@ $COMMAND_PREFIX$RESOLVE link
 ```
 """
 
+@Suppress("LongMethod")
 fun Embed.buildEmbed(command: String?) {
     when (command) {
         null -> {
