@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 allprojects {
     repositories {
         mavenCentral()
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+        maven { url = uri(SONATYPE_SNAPSHOTS_REPO) }
     }
 
     tasks.wrapper {
@@ -72,6 +72,13 @@ tasks {
     // Configure dependency updates task
     withType<DependencyUpdatesTask> {
         gradleReleaseChannel = GradleReleaseChannel.CURRENT.id
+
+        doFirst {
+            project.repositories.removeAll { repo ->
+                repo is MavenArtifactRepository && repo.url.toString() == SONATYPE_SNAPSHOTS_REPO
+            }
+        }
+
         rejectVersionIf {
             val candidateType = classifyVersion(candidate.version)
             val currentType = classifyVersion(currentVersion)

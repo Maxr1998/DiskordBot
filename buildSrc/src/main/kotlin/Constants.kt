@@ -1,0 +1,1 @@
+const val SONATYPE_SNAPSHOTS_REPO = "https://oss.sonatype.org/content/repositories/snapshots/"
