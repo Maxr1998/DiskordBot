@@ -17,10 +17,10 @@ allprojects {
 
 plugins {
     application
-    kotlin(Plugins.kotlinJvm)
-    kotlin(Plugins.serialization)
-    id(Plugins.shadow) version Plugins.Versions.shadow
-    id(Plugins.dependencyUpdates) version Plugins.Versions.dependencyUpdatesPlugin
+    kotlin("jvm")
+    kotlin("plugin.serialization")
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.dependencyUpdates)
 }
 
 val applicationName = "diskord-bot"
