@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-shadow = "7.0.0"
+shadow = "7.1.0"
 dependencyUpdates = "0.39.0"
 
 # Libraries
