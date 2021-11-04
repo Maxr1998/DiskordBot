@@ -1,0 +1,36 @@
+build:
+  maxIssues: 0
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 16
+    thresholdInClasses: 16
+    thresholdInInterfaces: 8
+    thresholdInObjects: 16
+    thresholdInEnums: 8
+    ignoreDeprecated: true
+
+exceptions:
+  SwallowedException:
+    active: false
+  TooGenericExceptionCaught:
+    active: false
+
+formatting:
+  FinalNewline:
+    insertFinalNewLine: false
+  MaximumLineLength:
+    maxLineLength: 200
+
+naming:
+  PackageNaming:
+    # Package names must be lowercase letters but may include numbers
+    packagePattern: '[a-z]+(\.[a-zA-Z][a-z0-9]*)*'
+
+style:
+  MaxLineLength:
+    maxLineLength: 200
+  NewLineAtEndOfFile:
+    active: false
+  ReturnCount:
+    active: false

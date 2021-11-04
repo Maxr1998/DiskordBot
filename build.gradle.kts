@@ -18,6 +18,7 @@ plugins {
     application
     kotlin("jvm")
     kotlin("plugin.serialization")
+    alias(libs.plugins.detekt)
     alias(libs.plugins.shadow)
     alias(libs.plugins.dependencyUpdates)
 }
@@ -25,6 +26,20 @@ plugins {
 val applicationName = "diskord-bot"
 group = "de.maxr1998"
 version = "1.0.0"
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$projectDir/detekt.yml")
+    autoCorrect = true
+
+    reports {
+        html.enabled = true
+        xml.enabled = false
+        txt.enabled = true
+        sarif.enabled = true
+    }
+}
 
 application {
     mainClass.set("de.maxr1998.diskord.MainKt")
@@ -45,6 +60,10 @@ dependencies {
     // Logging
     implementation(libs.bundles.logging)
     testImplementation(libs.bundles.kotest)
+
+
+    // Auto formatting with detekt
+    detektPlugins(libs.detekt.formatting)
 }
 
 tasks {
