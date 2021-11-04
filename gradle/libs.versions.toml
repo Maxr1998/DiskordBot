@@ -5,7 +5,7 @@ dependencyUpdates = "0.39.0"
 
 # Libraries
 koin = "3.1.2"
-coroutines = "1.5.1"
+coroutines = "1.5.2"
 diskord = "2.1.1"
 ktor = "1.6.3"
 exposed = "0.33.1"
