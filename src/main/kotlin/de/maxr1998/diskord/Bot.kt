@@ -309,9 +309,10 @@ class Bot : KoinComponent {
             return
         }
 
-        val commandEntities = commands.mapNotNull { command ->
-            DynamicCommandRepository.getCommandByGuild(guild, command).also { commandEntity ->
-                commandEntity ?: message.respond("Unknown auto-responder '$command'")
+        val commandEntities = commands.map { command ->
+            DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
+                message.respond("Unknown auto-responder '$command', aborting…")
+                return
             }
         }
 
