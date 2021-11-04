@@ -12,6 +12,7 @@ import de.maxr1998.diskord.Command.HELP
 import de.maxr1998.diskord.Command.HELP_ADMIN
 import de.maxr1998.diskord.Command.REMOVE
 import de.maxr1998.diskord.Command.RESOLVE
+import de.maxr1998.diskord.Command.SOURCE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 
 const val HELP_TITLE = "Help"
@@ -30,7 +31,7 @@ $COMMAND_PREFIX$ADD command entry
 
 If the entry is a link to Twitter, a Naver post or an Imgur album, images from it will automatically be resolved! Videos are not supported.
 
-Replying to a message with the above command, omitting the entry, will treat the replied message as content.
+Replying with this command to a message, omitting the entry, will treat the replied message as content.
 
 Attachments can also be uploaded, but should be rarely used since Discord will delete the media if the original message is removed.
 Also, they generally break the de-duplication of the bot, causing duplicate entries to be potentially added.
@@ -45,6 +46,16 @@ Works similar to `$ADD`, but instead removes entries.
 $COMMAND_PREFIX$REMOVE command entry
 ```"""
 
+const val SOURCE_DESC = """Shows the source of the content if available.
+
+Replying with this command to a message by the bot, omitting the entry, will treat the replied message as content.
+
+Additionally, it's possible to react to a message by the bot with ❓ to retrieve the source.
+
+```
+$COMMAND_PREFIX$SOURCE content
+```
+"""
 
 const val RESOLVE_DESC = """Resolves images from a link.
 Currently supported are Twitter, Imgur albums and Naver (Instagram is not publicly available).
@@ -68,6 +79,11 @@ fun Embed.buildEmbed(command: String?) {
                 EmbedField(
                     name = REMOVE.uppercase(),
                     value = REMOVE_DESC,
+                    inline = false,
+                ),
+                EmbedField(
+                    name = SOURCE.uppercase(),
+                    value = SOURCE_DESC,
                     inline = false,
                 ),
                 EmbedField(
@@ -109,6 +125,10 @@ fun Embed.buildEmbed(command: String?) {
         REMOVE -> {
             title = REMOVE.uppercase()
             description = REMOVE_DESC
+        }
+        SOURCE -> {
+            title = SOURCE.uppercase()
+            description = SOURCE_DESC
         }
         RESOLVE -> {
             title = RESOLVE.uppercase()

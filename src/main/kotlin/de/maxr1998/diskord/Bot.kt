@@ -476,13 +476,22 @@ class Bot : KoinComponent {
     }
 
     private suspend fun BotContext.getSource(message: Message) {
-        val repliedMessage = message.getRepliedMessage(this)
-        if (repliedMessage == null || repliedMessage.author.id != botUser.id) {
-            message.respond("The `$COMMAND_PREFIX$SOURCE` command only works when replying to messages by the bot")
+        val args = message.args(limit = 1)
+        val content = args.singleOrNull() ?: message.getRepliedMessage(this)?.let { repliedMessage ->
+            if (repliedMessage.author.id == botUser.id) {
+                message.content
+            } else {
+                message.respond("The `$COMMAND_PREFIX$SOURCE` command only works for replies to messages by the bot")
+                return
+            }
+        } ?: run {
+            message.channel.showHelp(SOURCE)
             return
         }
 
-        val entry = DynamicCommandRepository.getCommandEntry(repliedMessage.content) ?: run {
+        val normalizedContent = content.trim().removeSurrounding("<", ">")
+
+        val entry = DynamicCommandRepository.getCommandEntry(normalizedContent) ?: run {
             message.respond("Content not found")
             return
         }
