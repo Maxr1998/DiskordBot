@@ -551,7 +551,10 @@ class Bot : KoinComponent {
         val message = try {
             channelClient.getMessage(messageReactionAdd.messageId)
         } catch (e: DiscordNotFoundException) {
-            logger.error("Message ${messageReactionAdd.messageId} not found in ${messageReactionAdd.channelId}", e)
+            logger.error("Message ${messageReactionAdd.messageId} not found in ${messageReactionAdd.channelId}")
+            return
+        } catch (e: Exception) {
+            logger.error("Encountered $e while retrieving message ${messageReactionAdd.messageId} in ${messageReactionAdd.channelId}")
             return
         }
         val emoji = messageReactionAdd.emoji
