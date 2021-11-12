@@ -7,6 +7,7 @@ import de.maxr1998.diskord.model.database.Commands
 import de.maxr1998.diskord.model.database.Entries
 import de.maxr1998.diskord.model.database.EntryType
 import de.maxr1998.diskord.utils.exposed.suspendingTransaction
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
@@ -67,34 +68,15 @@ object DynamicCommandRepository {
     }
 
     private suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
-        val existing = getEntryByContentInternal(commandEntryEntity.content)
-        val id = if (existing != null) {
-            val id = existing[Entries.id]
-            val updates = mutableListOf<Entries.(UpdateStatement) -> Unit>()
-            if (commandEntryEntity.contentSource != null) updates.add { update ->
-                update[contentSource] = commandEntryEntity.contentSource
-            }
-            if (existing[Entries.type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) updates.add { update ->
-                update[type] = commandEntryEntity.type
-            }
-            if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) updates.add { update ->
-                update[width] = commandEntryEntity.width
-                update[height] = commandEntryEntity.height
-            }
-
-            if (updates.isNotEmpty()) Entries.update(where = { Entries.id eq id }) { update ->
-                updates.forEach { action -> action(update) }
-            }
-            id
-        } else {
-            Entries.insertIgnoreAndGetId { insert ->
+        val id = updateExistingEntryInternal(commandEntryEntity)
+            ?: Entries.insertIgnoreAndGetId { insert ->
                 insert[content] = commandEntryEntity.content
                 insert[contentSource] = commandEntryEntity.contentSource
                 insert[type] = commandEntryEntity.type
                 insert[width] = commandEntryEntity.width
                 insert[height] = commandEntryEntity.height
-            } ?: return@suspendingTransaction false // possible race-condition?
-        }
+            }
+            ?: return@suspendingTransaction false // possible race-condition?
 
         CommandEntries.insertIgnore { insert ->
             insert[command] = commandEntity.id
@@ -169,6 +151,29 @@ object DynamicCommandRepository {
 
     private fun getEntryByContentInternal(content: String): ResultRow? {
         return Entries.select { Entries.content eq content }.singleOrNull()
+    }
+
+    private fun updateExistingEntryInternal(commandEntryEntity: CommandEntryEntity): EntityID<Long>? {
+        val existing = getEntryByContentInternal(commandEntryEntity.content) ?: return null
+
+        val updates = mutableListOf<Entries.(UpdateStatement) -> Unit>()
+        if (commandEntryEntity.contentSource != null) updates.add { update ->
+            update[contentSource] = commandEntryEntity.contentSource
+        }
+        if (existing[Entries.type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) updates.add { update ->
+            update[type] = commandEntryEntity.type
+        }
+        if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) updates.add { update ->
+            update[width] = commandEntryEntity.width
+            update[height] = commandEntryEntity.height
+        }
+
+        val id = existing[Entries.id]
+        if (updates.isNotEmpty()) Entries.update(where = { Entries.id eq id }) { update ->
+            updates.forEach { action -> action(update) }
+        }
+
+        return id
     }
 
     /**
