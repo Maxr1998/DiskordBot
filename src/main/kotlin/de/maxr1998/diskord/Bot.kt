@@ -524,6 +524,7 @@ class Bot : KoinComponent {
 
         imageResolver.resolve(url, maySaveImages).onSuccess { resolved ->
             val images = resolved.imageUrls
+            DynamicCommandRepository.updateCommandEntries(images)
             for (from in images.indices step Constants.MAX_PREVIEW_IMAGES) {
                 val to = (from + Constants.MAX_PREVIEW_IMAGES).coerceAtMost(images.size)
                 val chunk = images.subList(from, to)

@@ -97,6 +97,10 @@ object DynamicCommandRepository {
         }
     }
 
+    suspend fun updateCommandEntries(entries: List<CommandEntryEntity>) = suspendingTransaction {
+        for (entry in entries) updateExistingEntryInternal(entry)
+    }
+
     private suspend fun removeCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
         val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
         (CommandEntries.deleteWhere {
