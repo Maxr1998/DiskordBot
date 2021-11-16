@@ -22,6 +22,7 @@ import java.security.SecureRandom
 import kotlin.random.Random
 import kotlin.random.asKotlinRandom
 
+@Suppress("TooManyFunctions")
 object DynamicCommandRepository {
     private val random: Random = SecureRandom().asKotlinRandom()
 
