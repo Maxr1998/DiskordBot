@@ -69,7 +69,7 @@ dependencies {
 tasks {
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_16.toString()
+            jvmTarget = JavaVersion.VERSION_17.toString()
             @Suppress("SuspiciousCollectionReassignment")
             freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
         }
