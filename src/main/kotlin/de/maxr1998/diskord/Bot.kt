@@ -482,7 +482,7 @@ class Bot : KoinComponent {
         val args = message.args(limit = 1)
         val content = args.singleOrNull() ?: message.getRepliedMessage(this)?.let { repliedMessage ->
             if (repliedMessage.author.id == botUser.id) {
-                message.content
+                repliedMessage.content
             } else {
                 message.respond("The `$COMMAND_PREFIX$SOURCE` command only works for replies to messages by the bot")
                 return
