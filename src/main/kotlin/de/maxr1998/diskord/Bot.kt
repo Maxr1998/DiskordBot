@@ -23,6 +23,7 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_HIDE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_PUBLISH
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.Command.HELP
@@ -207,7 +208,7 @@ class Bot : KoinComponent {
 
     @Suppress("LongMethod", "ComplexMethod")
     private suspend fun BotContext.autoResponder(message: Message) {
-        // Only owner and admins can add new auto-responders
+        // Only owner and admins can manage auto-responders
         if (!isAdmin(config, message)) {
             message.reply("Only admins can manage auto-responders")
             return
@@ -251,9 +252,27 @@ class Bot : KoinComponent {
 
                 message.respond {
                     title = "Available auto-responders"
-                    description = commands.joinToString("\n") { (cmd, count) ->
-                        "\u2022 ` $cmd ` - $count entries"
+                    description = commands.joinToString("\n") { (cmd, global, count) ->
+                        "\u2022 ` $cmd `${if (global) " **[global]**" else ""} - $count entries"
                     }
+                }
+            }
+            AUTO_RESPONDER_MODE_PUBLISH -> {
+                // Only owner can publish auto-responders globally
+                if (!isOwner(config, message)) {
+                    message.reply("Insufficient permissions")
+                    return
+                }
+
+                if (command == null) {
+                    return
+                }
+
+                if (DynamicCommandRepository.publishCommandByGuild(guild, command)) {
+                    message.respond("Successfully published auto-responder '$command'")
+                    logger.debug("${message.author.username} published auto-responder $command globally")
+                } else {
+                    message.respond("Unknown auto-responder '$command'")
                 }
             }
             AUTO_RESPONDER_MODE_HIDE -> {

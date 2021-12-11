@@ -2,7 +2,9 @@ package de.maxr1998.diskord.model.database
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 
 private const val MAX_ID_LENGTH = 20 // ceil(log(2^64))
@@ -17,6 +19,11 @@ object Commands : IntIdTable("commands") {
     init {
         uniqueIndex(guild, command)
     }
+
+    const val GUILD_GLOBAL = "global"
+
+    val isGlobal: Op<Boolean>
+        get() = guild eq GUILD_GLOBAL
 }
 
 object EntryType {
