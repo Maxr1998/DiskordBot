@@ -61,11 +61,13 @@ object DynamicCommandRepository {
     }
 
     suspend fun removeCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
-        (Commands.deleteWhere {
+        val removedAny = Commands.deleteWhere {
             (Commands.guild eq guild) and (Commands.command eq command)
-        } > 0).also { removed ->
-            if (removed) cleanEntriesInternal()
+        } > 0
+        if (removedAny) {
+            cleanEntriesInternal()
         }
+        removedAny
     }
 
     private suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
@@ -104,21 +106,25 @@ object DynamicCommandRepository {
 
     private suspend fun removeCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
         val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
-        (CommandEntries.deleteWhere {
+        val removedAny = CommandEntries.deleteWhere {
             (CommandEntries.command eq commandEntity.id) and (CommandEntries.entry eq id)
-        } > 0).also { removed ->
-            if (removed) cleanEntriesInternal()
+        } > 0
+        if (removedAny) {
+            cleanEntriesInternal()
         }
+        removedAny
     }
 
     suspend fun removeEntryForGuild(entry: String, guild: String): Boolean = suspendingTransaction {
         val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
         val commandsInGuild = Commands.slice(Commands.id).select { Commands.guild eq guild }
-        (CommandEntries.deleteWhere {
+        val removedAny = CommandEntries.deleteWhere {
             (CommandEntries.entry eq id) and (CommandEntries.command inSubQuery commandsInGuild)
-        } > 0).also { removed ->
-            if (removed) cleanEntriesInternal()
+        } > 0
+        if (removedAny) {
+            cleanEntriesInternal()
         }
+        removedAny
     }
 
     /**

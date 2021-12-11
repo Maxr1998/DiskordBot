@@ -1,6 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 allprojects {
@@ -32,13 +33,6 @@ detekt {
     allRules = false
     config = files("$projectDir/detekt.yml")
     autoCorrect = true
-
-    reports {
-        html.enabled = true
-        xml.enabled = false
-        txt.enabled = true
-        sarif.enabled = true
-    }
 }
 
 application {
@@ -67,6 +61,15 @@ dependencies {
 }
 
 tasks {
+    withType<Detekt> {
+        reports {
+            html.required.set(true)
+            xml.required.set(false)
+            txt.required.set(true)
+            sarif.required.set(true)
+        }
+    }
+
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_17.toString()
