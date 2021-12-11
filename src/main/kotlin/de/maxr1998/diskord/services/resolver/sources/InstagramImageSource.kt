@@ -40,6 +40,7 @@ class InstagramImageSource(
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val normalizedUrl = url.copy(
             protocol = URLProtocol.HTTPS,
+            encodedPath = url.encodedPath.replace(INSTAGRAM_POST_PATH_REGEX, "$1/"),
             parameters = Parameters.Empty,
             fragment = "",
             trailingQuery = false,
@@ -105,7 +106,7 @@ class InstagramImageSource(
         private const val COOLDOWN_MS = 3000L
 
         const val INSTAGRAM_HOST = "www.instagram.com"
-        private val INSTAGRAM_POST_PATH_REGEX = Regex("""/p/[^/]+/?""")
+        private val INSTAGRAM_POST_PATH_REGEX = Regex("""(?:/[a-z0-9_.]{1,30})?(/p/[^/]+)/?""")
         private const val INSTAGRAM_CONTENT_START_MARKER = """{"graphql":{"shortcode_media":{"""
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
     }
