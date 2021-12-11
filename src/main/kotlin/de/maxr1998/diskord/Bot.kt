@@ -256,7 +256,7 @@ class Bot : KoinComponent {
                     }
                 }
             }
-            in AUTO_RESPONDER_MODE_HIDE -> {
+            AUTO_RESPONDER_MODE_HIDE -> {
                 if (command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
