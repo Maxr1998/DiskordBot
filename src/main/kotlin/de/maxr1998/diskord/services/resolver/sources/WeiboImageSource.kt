@@ -77,7 +77,7 @@ class WeiboImageSource(
 
     companion object {
         const val WEIBO_HOST = "m.weibo.cn"
-        private val WEIBO_STATUS_PATH_REGEX = Regex("""/(?:status|detail)/\d+/?""")
+        private val WEIBO_STATUS_PATH_REGEX = Regex("""/(?:status|detail)/(?:\d+|[a-zA-Z]+)/?""")
         private const val RENDER_DATA_START_MARKER = "var \$render_data = ["
         private const val RENDER_DATA_END_MARKER = "][0] || {};"
     }
