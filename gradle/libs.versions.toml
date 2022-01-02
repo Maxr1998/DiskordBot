@@ -1,8 +1,8 @@
 [versions]
 # Plugins
 detekt = "1.19.0"
-shadow = "7.1.0"
-dependencyUpdates = "0.39.0"
+shadow = "7.1.2"
+dependencyUpdates = "0.40.0"
 
 # Libraries
 koin = "3.1.4"
