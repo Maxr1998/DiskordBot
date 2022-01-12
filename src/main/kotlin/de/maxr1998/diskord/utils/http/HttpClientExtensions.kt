@@ -2,6 +2,7 @@ package de.maxr1998.diskord.utils.http
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
+import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.HttpStatement
@@ -19,7 +20,11 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
-suspend fun HttpClient.loadJsoupDocument(url: Url): Document? = get<HttpStatement>(url).execute { response ->
+suspend fun HttpClient.getHtml(url: Url): HttpStatement = get(url) {
+    accept(ContentType.Text.Html)
+}
+
+suspend fun HttpClient.loadJsoupDocument(url: Url): Document? = getHtml(url).execute { response ->
     if (response.status.isSuccess() && response.contentType()?.withoutParameters() == ContentType.Text.Html) {
         response.receive<ByteReadChannel>().toInputStream().use { stream ->
             withContext(Dispatchers.IO) {
