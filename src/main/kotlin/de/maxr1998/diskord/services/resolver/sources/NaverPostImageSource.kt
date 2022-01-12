@@ -3,21 +3,12 @@ package de.maxr1998.diskord.services.resolver.sources
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
+import de.maxr1998.diskord.utils.http.loadJsoupDocument
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpStatement
-import io.ktor.http.ContentType
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.jsoup.Jsoup
 
@@ -43,16 +34,7 @@ class NaverPostImageSource(
             trailingQuery = false,
         )
 
-        val document = httpClient.get<HttpStatement>(normalizedUrl).execute { response ->
-            if (response.status.isSuccess() && response.contentType()?.withoutParameters() == ContentType.Text.Html) {
-                response.receive<ByteReadChannel>().toInputStream().use { stream ->
-                    withContext(Dispatchers.IO) {
-                        @Suppress("BlockingMethodInNonBlockingContext")
-                        Jsoup.parse(stream, null, normalizedUrl.toString())
-                    }
-                }
-            } else null
-        } ?: return ImageResolver.Status.ParsingFailed()
+        val document = httpClient.loadJsoupDocument(normalizedUrl) ?: return ImageResolver.Status.ParsingFailed()
 
         val clipContent = document.body().selectFirst("#__clipContent")
             ?: return ImageResolver.Status.ParsingFailed()
