@@ -6,7 +6,7 @@ import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import de.maxr1998.diskord.services.resolver.sources.ImgurAlbumSource
 import de.maxr1998.diskord.services.resolver.sources.InstagramImageSource
-import de.maxr1998.diskord.services.resolver.sources.NaverImageSource
+import de.maxr1998.diskord.services.resolver.sources.NaverPostImageSource
 import de.maxr1998.diskord.services.resolver.sources.TwitterImageSource
 import de.maxr1998.diskord.services.resolver.sources.WeiboImageSource
 import de.maxr1998.diskord.utils.DatabaseHelpers
@@ -84,7 +84,7 @@ val appModule = module {
     single { ImageResolver(getAll()) }
     single { ImgurAlbumSource(get(), get()) } bind ImageSource::class
     single { InstagramImageSource(get(), get(), get()) } bind ImageSource::class
-    single { NaverImageSource(get()) } bind ImageSource::class
+    single { NaverPostImageSource(get()) } bind ImageSource::class
     single { TwitterImageSource(get()) } bind ImageSource::class
     single { WeiboImageSource(get(), get()) } bind ImageSource::class
 }

@@ -23,7 +23,7 @@ import org.jsoup.Jsoup
 
 private val logger = KotlinLogging.logger {}
 
-class NaverImageSource(
+class NaverPostImageSource(
     httpClient: HttpClient,
 ) : ImageSource(httpClient) {
 
