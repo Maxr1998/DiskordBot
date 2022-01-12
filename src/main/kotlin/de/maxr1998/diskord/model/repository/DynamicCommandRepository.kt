@@ -26,7 +26,7 @@ import kotlin.random.asKotlinRandom
 
 @Suppress("TooManyFunctions")
 object DynamicCommandRepository {
-    private val random: Random = SecureRandom().asKotlinRandom()
+    private val random: Random = SecureRandom.getInstanceStrong().asKotlinRandom()
 
     suspend fun getCommandByGuild(guild: String, command: String): CommandEntity? = suspendingTransaction {
         Commands.slice(Commands.id).select {
