@@ -44,7 +44,7 @@ sealed class ExtractionResult {
 
 private inline val String.linesResult: ExtractionResult?
     get() = when {
-        startsWith("raw::") -> ExtractionResult.Raw(substring(5))
+        startsWith("raw::") -> ExtractionResult.Raw(substring(@Suppress("MagicNumber") /* "raw::" length */ 5))
         else -> splitLinesIfNotBlank()?.let(ExtractionResult::Lines)
     }
 
