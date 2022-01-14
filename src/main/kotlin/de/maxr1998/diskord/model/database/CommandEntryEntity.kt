@@ -13,13 +13,22 @@ data class CommandEntryEntity(
     val height: Int,
 ) {
     companion object {
+        fun text(content: String, source: Url?) = CommandEntryEntity(
+            id = null,
+            content = content,
+            contentSource = source?.toString(),
+            type = EntryType.TEXT,
+            width = 0,
+            height = 0,
+        )
+
         fun tryUrl(content: String, source: Url?) = CommandEntryEntity(
             id = null,
             content = content,
             contentSource = source?.toString(),
             type = if (content.isUrl()) EntryType.LINK else EntryType.TEXT,
             width = 0,
-            height = 0
+            height = 0,
         )
 
         fun image(url: String, source: Url?, width: Int = 0, height: Int = 0) = CommandEntryEntity(
@@ -28,7 +37,7 @@ data class CommandEntryEntity(
             contentSource = source?.toString(),
             type = EntryType.IMAGE,
             width = width,
-            height = height
+            height = height,
         )
 
         fun gif(url: String, source: Url?, width: Int = 0, height: Int = 0) = CommandEntryEntity(
@@ -37,7 +46,7 @@ data class CommandEntryEntity(
             contentSource = source?.toString(),
             type = EntryType.GIF,
             width = width,
-            height = height
+            height = height,
         )
 
         fun video(url: String, source: Url?, width: Int = 0, height: Int = 0) = CommandEntryEntity(
@@ -46,7 +55,7 @@ data class CommandEntryEntity(
             contentSource = source?.toString(),
             type = EntryType.VIDEO,
             width = width,
-            height = height
+            height = height,
         )
     }
 }

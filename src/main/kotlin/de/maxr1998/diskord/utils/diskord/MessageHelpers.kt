@@ -37,12 +37,16 @@ fun String.splitWhitespaceNonEmpty(limit: Int): List<String> {
 }
 
 sealed class ExtractionResult {
+    class Raw(val content: String) : ExtractionResult()
     class Lines(val content: List<String>) : ExtractionResult()
     class Attachments(val content: List<Attachment>) : ExtractionResult()
 }
 
 private inline val String.linesResult: ExtractionResult?
-    get() = splitLinesIfNotBlank()?.let(ExtractionResult::Lines)
+    get() = when {
+        startsWith("raw::") -> ExtractionResult.Raw(substring(5))
+        else -> splitLinesIfNotBlank()?.let(ExtractionResult::Lines)
+    }
 
 private inline val Message.attachmentsResultOrNull: ExtractionResult?
     get() = if (attachments.isNotEmpty()) ExtractionResult.Attachments(attachments) else null

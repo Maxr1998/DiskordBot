@@ -342,6 +342,9 @@ class Bot : KoinComponent {
                 message.channel.showHelp(ADD)
                 return
             }
+            is ExtractionResult.Raw -> {
+                listOf(CommandEntryEntity.text(extractionResult.content, null))
+            }
             is ExtractionResult.Lines -> {
                 val urls = mutableListOf<Url>()
                 for (line in extractionResult.content) {
@@ -481,6 +484,7 @@ class Bot : KoinComponent {
                 message.channel.showHelp(REMOVE)
                 return
             }
+            is ExtractionResult.Raw -> listOf(extractionResult.content)
             is ExtractionResult.Lines -> extractionResult.content
             is ExtractionResult.Attachments -> extractionResult.content.map(Attachment::url)
         }
