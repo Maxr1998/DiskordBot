@@ -249,10 +249,13 @@ class Bot : KoinComponent {
                     return
                 }
 
-                val newName = args[2].lowercase()
-                if (DynamicCommandRepository.renameCommandByGuild(guild, command, newName)) {
-                    message.respond("Successfully renamed auto-responder '$command' to '$newName'")
-                    logger.debug("${message.author.username} renamed auto-responder $command to $newName")
+                val target = args[2].lowercase()
+                val existingTarget = DynamicCommandRepository.getCommandByGuild(guild, target)
+                if (existingTarget != null) {
+                    message.respond("Auto-responder '$target' already exists, choose another name")
+                } else if (DynamicCommandRepository.renameCommandByGuild(guild, command, target)) {
+                    message.respond("Successfully renamed auto-responder '$command' to '$target'")
+                    logger.debug("${message.author.username} renamed auto-responder $command to $target")
                 } else {
                     message.respond("Unknown auto-responder '$command'")
                 }
