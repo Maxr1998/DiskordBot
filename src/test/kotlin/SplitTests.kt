@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 
 class SplitTests : StringSpec({
     "Generic split should return correct output" {
-        with("%cmd arg1 arg2".splitWhitespaceNonEmpty(0)) {
+        with("%cmd arg1 arg2".splitWhitespaceNonEmpty()) {
             size shouldBe 3
             get(0) shouldBe "%cmd"
             get(1) shouldBe "arg1"
@@ -14,28 +14,28 @@ class SplitTests : StringSpec({
     }
 
     "Inputs without whitespace shouldn't split" {
-        with("whatever".splitWhitespaceNonEmpty(0)) {
+        with("whatever".splitWhitespaceNonEmpty()) {
             size shouldBe 1
             get(0) shouldBe "whatever"
         }
     }
 
     "Inputs with repeated whitespaces should return correct output" {
-        with("%cmd  arg1 arg2".splitWhitespaceNonEmpty(0)) {
+        with("%cmd  arg1 arg2".splitWhitespaceNonEmpty()) {
             size shouldBe 3
             get(0) shouldBe "%cmd"
             get(1) shouldBe "arg1"
             get(2) shouldBe "arg2"
         }
 
-        with("%cmd   arg1 arg2".splitWhitespaceNonEmpty(0)) {
+        with("%cmd   arg1 arg2".splitWhitespaceNonEmpty()) {
             size shouldBe 3
             get(0) shouldBe "%cmd"
             get(1) shouldBe "arg1"
             get(2) shouldBe "arg2"
         }
 
-        with("%cmd    arg1    arg2".splitWhitespaceNonEmpty(0)) {
+        with("%cmd    arg1    arg2".splitWhitespaceNonEmpty()) {
             size shouldBe 3
             get(0) shouldBe "%cmd"
             get(1) shouldBe "arg1"
@@ -44,7 +44,7 @@ class SplitTests : StringSpec({
     }
 
     "Inputs with exotic whitespaces should return correct output" {
-        with("%cmd\u3000arg1\u3000arg2".splitWhitespaceNonEmpty(0)) {
+        with("%cmd\u3000arg1\u3000arg2".splitWhitespaceNonEmpty()) {
             size shouldBe 3
             get(0) shouldBe "%cmd"
             get(1) shouldBe "arg1"
@@ -78,9 +78,12 @@ class SplitTests : StringSpec({
         }
     }
 
-    "Negative limit should fail" {
+    "Negative or zero limit should fail" {
         shouldThrow<IllegalArgumentException> {
             "whatever".splitWhitespaceNonEmpty(-1)
+        }
+        shouldThrow<IllegalArgumentException> {
+            "whatever".splitWhitespaceNonEmpty(0)
         }
     }
 })
