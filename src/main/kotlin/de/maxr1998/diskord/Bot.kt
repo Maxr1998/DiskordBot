@@ -235,7 +235,8 @@ class Bot : KoinComponent {
                     return
                 }
 
-                if (DynamicCommandRepository.addCommandByGuild(guild, command)) {
+                val existingEntity = DynamicCommandRepository.getCommandByGuild(guild, command)
+                if (existingEntity == null && DynamicCommandRepository.addCommandByGuild(guild, command)) {
                     message.respond("Successfully added auto-responder for '$command'")
                     logger.debug("${message.author.username} added auto-responder $command")
                 } else {
