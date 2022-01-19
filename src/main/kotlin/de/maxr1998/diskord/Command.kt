@@ -14,6 +14,7 @@ object Command {
     const val AUTO_RESPONDER = "autoresponder"
     const val AUTO_RESPONDER_SHORT = "ar"
     val AUTO_RESPONDER_MODE_ADD = arrayOf("add", "create", "new")
+    val AUTO_RESPONDER_MODE_RENAME = arrayOf("rename", "mv")
     val AUTO_RESPONDER_MODE_LIST = arrayOf("list", "ls")
     const val AUTO_RESPONDER_MODE_PUBLISH = "publish"
     const val AUTO_RESPONDER_MODE_HIDE = "hide"

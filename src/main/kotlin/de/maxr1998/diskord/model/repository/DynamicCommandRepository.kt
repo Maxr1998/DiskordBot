@@ -61,6 +61,14 @@ object DynamicCommandRepository {
         } != null
     }
 
+    suspend fun renameCommandByGuild(guild: String, command: String, newName: String): Boolean = suspendingTransaction {
+        Commands.update(where = {
+            (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
+        }) { update ->
+            update[Commands.command] = newName
+        } > 0
+    }
+
     suspend fun publishCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
         Commands.update(where = {
             (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)

@@ -24,6 +24,7 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_HIDE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_PUBLISH
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_RENAME
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.Command.HELP
 import de.maxr1998.diskord.Command.HELP_ADMIN
@@ -205,7 +206,7 @@ class Bot : KoinComponent {
         }
     }
 
-    @Suppress("LongMethod", "ComplexMethod")
+    @Suppress("LongMethod", "ComplexMethod", "MagicNumber")
     private suspend fun BotContext.autoResponder(message: Message) {
         // Only owner and admins can manage auto-responders
         if (!isAdmin(config, message)) {
@@ -218,7 +219,7 @@ class Bot : KoinComponent {
             return
         }
 
-        val args = message.args(limit = 0)
+        val args = message.args(limit = Int.MAX_VALUE)
         if (args.isEmpty()) { // Require mode
             message.channel.showHelp(HELP_ADMIN)
             return
@@ -240,6 +241,20 @@ class Bot : KoinComponent {
                     logger.debug("${message.author.username} added auto-responder $command")
                 } else {
                     message.respond("Auto-responder for '$command' already exists")
+                }
+            }
+            in AUTO_RESPONDER_MODE_RENAME -> {
+                if (args.size != 3 /* <mode> <command> <new_name> */ || command == null) {
+                    message.channel.showHelp(HELP_ADMIN)
+                    return
+                }
+
+                val newName = args[2].lowercase()
+                if (DynamicCommandRepository.renameCommandByGuild(guild, command, newName)) {
+                    message.respond("Successfully renamed auto-responder '$command' to '$newName'")
+                    logger.debug("${message.author.username} renamed auto-responder $command to $newName")
+                } else {
+                    message.respond("Unknown auto-responder '$command'")
                 }
             }
             in AUTO_RESPONDER_MODE_LIST -> {
