@@ -17,7 +17,6 @@ import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.bot.classicCommands
 import com.jessecorbett.diskord.util.sendEmbed
 import com.jessecorbett.diskord.util.sendMessage
-import com.jessecorbett.diskord.util.words
 import de.maxr1998.diskord.Command.ADD
 import de.maxr1998.diskord.Command.AUTO_RESPONDER
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
@@ -214,23 +213,23 @@ class Bot : KoinComponent {
             return
         }
 
-        val args = message.words.drop(1)
-        if (args.size !in 1..2) {
+        val guild = message.guildId ?: run {
+            message.channel.sendNoDmWarning(AUTO_RESPONDER)
+            return
+        }
+
+        val args = message.args(limit = 0)
+        if (args.isEmpty()) { // Require mode
             message.channel.showHelp(HELP_ADMIN)
             return
         }
 
-        val mode = args[0]
+        val mode = args.first()
         val command = args.getOrNull(1)?.lowercase()
-
-        val guild = message.guildId ?: run {
-            message.channel.sendNoDmWarning("$AUTO_RESPONDER $mode")
-            return
-        }
 
         when (mode) {
             in AUTO_RESPONDER_MODE_ADD -> {
-                if (command == null) {
+                if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
@@ -244,7 +243,7 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_LIST -> {
-                if (args.size != 1) {
+                if (args.size != 1 /* <mode> */) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
@@ -265,7 +264,7 @@ class Bot : KoinComponent {
                     return
                 }
 
-                if (command == null) {
+                if (args.size != 2 /* <mode> <command> */ || command == null) {
                     return
                 }
 
@@ -277,7 +276,7 @@ class Bot : KoinComponent {
                 }
             }
             AUTO_RESPONDER_MODE_HIDE -> {
-                if (command == null) {
+                if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
@@ -290,7 +289,7 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_REMOVE -> {
-                if (command == null) {
+                if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
