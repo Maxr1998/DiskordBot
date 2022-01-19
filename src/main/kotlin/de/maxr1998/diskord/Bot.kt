@@ -132,8 +132,14 @@ class Bot : KoinComponent {
     }
 
     private suspend fun BotContext.onReady() {
-        botUser = global().getUser()
-        logger.debug("Bot's user id is ${botUser.id}")
+        val globalClient = global()
+        botUser = globalClient.getUser()
+        val guilds = globalClient.getGuilds()
+
+        logger.debug("Bot has user id ${botUser.id} and is in ${guilds.size} server(s):")
+        guilds.forEach { guild ->
+            logger.debug("\u21b3 ${guild.name} [${guild.id}]")
+        }
     }
 
     private suspend fun BotContext.setStatus(botBase: BotBase, message: Message) {
