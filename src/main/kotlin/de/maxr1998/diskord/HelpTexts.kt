@@ -115,7 +115,7 @@ fun Embed.buildEmbed(command: String?) {
                 ),
                 EmbedField(
                     name = "Show all auto-responders",
-                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]}`""",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]} (global)`""",
                     inline = false,
                 ),
                 EmbedField(

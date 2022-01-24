@@ -9,6 +9,7 @@ import de.maxr1998.diskord.model.database.EntryType
 import de.maxr1998.diskord.utils.exposed.suspendingTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Count
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
@@ -40,12 +41,12 @@ object DynamicCommandRepository {
         }
     }
 
-    suspend fun getCommandsByGuild(guild: String): List<Triple<String, Boolean, Long>> = suspendingTransaction {
+    suspend fun getCommandsByGuild(guild: String, onlyGlobal: Boolean): List<Triple<String, Boolean, Long>> = suspendingTransaction {
         val countAlias = Count(CommandEntries.entry)
         Commands.leftJoin(CommandEntries)
             .slice(Commands.id, Commands.isGlobal, Commands.command, countAlias)
             .select {
-                (Commands.guild eq guild or Commands.isGlobal) and not(Commands.hidden)
+                ((if (!onlyGlobal) Commands.guild eq guild else Op.FALSE) or Commands.isGlobal) and not(Commands.hidden)
             }
             .groupBy(Commands.id, Commands.command)
             .orderBy(Commands.isGlobal to SortOrder.DESC, Commands.command to SortOrder.ASC)

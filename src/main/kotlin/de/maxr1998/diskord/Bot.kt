@@ -267,12 +267,13 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_LIST -> {
-                if (args.size != 1 /* <mode> */) {
+                val onlyGlobal = command == "global"
+                if (args.size != 1 /* <mode> */ && (args.size != 2 /* <mode> global */ || !onlyGlobal)) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
 
-                val commands = DynamicCommandRepository.getCommandsByGuild(guild)
+                val commands = DynamicCommandRepository.getCommandsByGuild(guild, onlyGlobal)
 
                 message.respond {
                     title = "Available auto-responders"
