@@ -555,12 +555,6 @@ class Bot : KoinComponent {
     }
 
     private suspend fun BotContext.resolve(message: Message) {
-        // Only managers may use the bot to resolve links
-        if (!isManager(config, message)) {
-            message.reply("Only managers can resolve links")
-            return
-        }
-
         val maySaveImages = isOwner(config, message)
 
         val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
