@@ -26,6 +26,8 @@ import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_PUBLISH
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_RENAME
 import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_TYPE_GLOBAL
+import de.maxr1998.diskord.Command.AUTO_RESPONDER_TYPE_HIDDEN
 import de.maxr1998.diskord.Command.HELP
 import de.maxr1998.diskord.Command.HELP_ADMIN
 import de.maxr1998.diskord.Command.REMOVE
@@ -38,6 +40,7 @@ import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository
+import de.maxr1998.diskord.model.repository.DynamicCommandRepository.CommandType
 import de.maxr1998.diskord.services.UrlNormalizer
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.utils.DatabaseHelpers
@@ -271,18 +274,28 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_LIST -> {
-                val onlyGlobal = command == "global"
-                if (args.size != 1 /* <mode> */ && (args.size != 2 /* <mode> global */ || !onlyGlobal)) {
+                val type = when (command) {
+                    AUTO_RESPONDER_TYPE_GLOBAL -> CommandType.GLOBAL_ONLY
+                    AUTO_RESPONDER_TYPE_HIDDEN -> CommandType.HIDDEN
+                    else -> CommandType.ALL_VISIBLE
+                }
+
+                if (type == CommandType.HIDDEN && !isOwner(config, message)) {
+                    message.reply("Deep down in the darkness they lie, unable for you to see…")
+                    return
+                }
+
+                if (args.size != 1 /* <mode> */ && (args.size != 2 /* <mode> global/hidden */ || type == CommandType.ALL_VISIBLE)) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
 
-                val commands = DynamicCommandRepository.getCommandsByGuild(guild, onlyGlobal)
+                val commands = DynamicCommandRepository.getCommandsByGuild(guild, type)
 
                 message.respond {
                     title = "Available auto-responders"
                     description = commands.joinToString("\n") { (cmd, global, count) ->
-                        "\u2022 ` $cmd `${if (global) " **[global]**" else ""} - $count entries"
+                        "\u2022 ` $cmd `${if (global) " **[$AUTO_RESPONDER_TYPE_GLOBAL]**" else ""} - $count entries"
                     }
                 }
             }
