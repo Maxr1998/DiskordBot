@@ -214,12 +214,6 @@ class Bot : KoinComponent {
 
     @Suppress("LongMethod", "ComplexMethod", "MagicNumber")
     private suspend fun BotContext.autoResponder(message: Message) {
-        // Only owner and admins can manage auto-responders
-        if (!isAdmin(config, message)) {
-            message.reply("Only admins can manage auto-responders")
-            return
-        }
-
         val guild = message.guildId ?: run {
             message.channel.sendNoDmWarning(AUTO_RESPONDER)
             return
@@ -236,6 +230,11 @@ class Bot : KoinComponent {
 
         when (mode) {
             in AUTO_RESPONDER_MODE_ADD -> {
+                if (!isAdmin(config, message)) {
+                    message.reply("Only admins can add auto-responders")
+                    return
+                }
+
                 if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
@@ -250,6 +249,11 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_RENAME -> {
+                if (!isAdmin(config, message)) {
+                    message.reply("Only admins can rename auto-responders")
+                    return
+                }
+
                 if (args.size != 3 /* <mode> <command> <new_name> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
@@ -283,9 +287,8 @@ class Bot : KoinComponent {
                 }
             }
             AUTO_RESPONDER_MODE_PUBLISH -> {
-                // Only owner can publish auto-responders globally
                 if (!isOwner(config, message)) {
-                    message.reply("Insufficient permissions")
+                    message.reply("Only owners can publish auto-responders globally")
                     return
                 }
 
@@ -301,6 +304,11 @@ class Bot : KoinComponent {
                 }
             }
             AUTO_RESPONDER_MODE_HIDE -> {
+                if (!isAdmin(config, message)) {
+                    message.reply("Only admins can hide auto-responders")
+                    return
+                }
+
                 if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
@@ -314,6 +322,11 @@ class Bot : KoinComponent {
                 }
             }
             in AUTO_RESPONDER_MODE_REMOVE -> {
+                if (!isAdmin(config, message)) {
+                    message.reply("Only admins can remove auto-responders")
+                    return
+                }
+
                 if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
