@@ -16,18 +16,15 @@ import de.maxr1998.diskord.Command.SOURCE
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
 
 const val HELP_TITLE = "Help"
-const val LIST_HELP_DESC = """A list of commands provided by the bot.
-For more details on a specific command, enter:
-```
-$COMMAND_PREFIX$HELP <command>
-```"""
+const val LIST_HELP_DESC = """
+A list of commands provided by the bot.
+"""
 
-const val ADD_DESC = """Adds entries (text, links, images) to a responder.
-Automatically splits on lines, allowing to add multiple entries at once.
-
-```
+const val ADD_DESC = """```
 $COMMAND_PREFIX$ADD command entry
 ```
+Adds entries (text, links, images) to a responder.
+Automatically splits on lines, allowing to add multiple entries at once.
 
 If the entry is a link to Twitter, a Naver post or an Imgur album, images from it will automatically be resolved! Videos are not supported.
 
@@ -38,30 +35,40 @@ Also, they generally break the de-duplication of the bot, causing duplicate entr
 Attachments work for both the message of the command itself as well as replies. When using them, the content of the message itself is ignored.
 """
 
-const val REMOVE_DESC = """Remove entries from a responder.
-Works similar to `$ADD`, but instead removes entries.
-
-```
+const val REMOVE_DESC = """```
 $COMMAND_PREFIX$REMOVE command entry
-```"""
+```
+Remove entries from a responder.
+Works similar to `$ADD`, but instead removes entries.
+"""
 
-const val SOURCE_DESC = """Shows the source of the content if available.
+const val SOURCE_DESC = """```
+$COMMAND_PREFIX$SOURCE content
+```
+Shows the source of the content if available.
 
 Replying with this command to a message by the bot, omitting the entry, will treat the replied message as content.
 
 Additionally, it's possible to react to a message by the bot with ❓ to retrieve the source.
-
-```
-$COMMAND_PREFIX$SOURCE content
-```
 """
 
-const val RESOLVE_DESC = """Resolves images from a link.
+const val RESOLVE_DESC = """```
+$COMMAND_PREFIX$RESOLVE link
+```
+Resolves images from a link.
 Currently supported are Twitter, Imgur albums and Naver (Instagram is not publicly available).
 Videos are generally not supported.
+"""
 
+const val HELP_DESC = """```
+$COMMAND_PREFIX$HELP
+$COMMAND_PREFIX$HELP command
 ```
-$COMMAND_PREFIX$RESOLVE link
+Shows this help. Add `command` for details on a single command.
+
+For a list of admin-only commands, see
+```
+$COMMAND_PREFIX$HELP $HELP_ADMIN
 ```
 """
 
@@ -91,29 +98,39 @@ fun Embed.buildEmbed(command: String?) {
                     value = RESOLVE_DESC,
                     inline = false,
                 ),
+                EmbedField(
+                    name = HELP.uppercase(),
+                    value = HELP_DESC,
+                    inline = false,
+                ),
             )
         }
         HELP_ADMIN -> {
             description = "Moderation commands. **Only for admins.**"
             fields = mutableListOf(
                 EmbedField(
-                    name = "Add auto-responder",
-                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_ADD[0]} <command>`""",
+                    name = "Add a new auto-responder",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_ADD[0]} command`""",
                     inline = false,
                 ),
                 EmbedField(
-                    name = "Show auto-responders",
-                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]} <command>`""",
+                    name = "Show all auto-responders",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_LIST[0]}`""",
                     inline = false,
                 ),
                 EmbedField(
-                    name = "Hide auto-responder",
-                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER $AUTO_RESPONDER_MODE_HIDE <command>`""",
+                    name = "Publish auto-responder globally",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER $AUTO_RESPONDER_MODE_HIDE command`""",
                     inline = false,
                 ),
                 EmbedField(
-                    name = "Remove auto-responder",
-                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_REMOVE[0]} <command>`""",
+                    name = "Hide auto-responder (from list)",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER $AUTO_RESPONDER_MODE_HIDE command`""",
+                    inline = false,
+                ),
+                EmbedField(
+                    name = "Remove auto-responder - also deletes all its entries",
+                    value = """`$COMMAND_PREFIX$AUTO_RESPONDER ${AUTO_RESPONDER_MODE_REMOVE[0]} command`""",
                     inline = false,
                 ),
             )
