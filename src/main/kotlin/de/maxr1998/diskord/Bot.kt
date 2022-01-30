@@ -14,7 +14,6 @@ import com.jessecorbett.diskord.api.gateway.model.UserStatusActivity
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
-import com.jessecorbett.diskord.bot.classicCommands
 import com.jessecorbett.diskord.util.sendEmbed
 import com.jessecorbett.diskord.util.sendMessage
 import de.maxr1998.diskord.Command.ADD
@@ -95,7 +94,7 @@ class Bot : KoinComponent {
                 }
             }
 
-            classicCommands(commandPrefix = COMMAND_PREFIX) {
+            defaultCommands(commandPrefix = COMMAND_PREFIX) {
                 // Bot management commands
                 command(STATUS) { message -> setStatus(this@bot, message) }
 
