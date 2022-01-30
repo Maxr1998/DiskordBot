@@ -1,10 +1,14 @@
 package de.maxr1998.diskord
 
 import com.jessecorbett.diskord.api.common.Message
+import com.jessecorbett.diskord.api.exceptions.DiscordException
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 class DynamicCommandsModule {
 
@@ -31,6 +35,10 @@ class DynamicCommandsModule {
         val commandEntity = DynamicCommandRepository.getCommandByGuild(guild, command) ?: return
         val content = DynamicCommandRepository.getRandomEntry(commandEntity) ?: return
 
-        message.respond(content)
+        try {
+            message.respond(content)
+        } catch (e: DiscordException) {
+            logger.error("Replying to %$command caused exception $e", e)
+        }
     }
 }
