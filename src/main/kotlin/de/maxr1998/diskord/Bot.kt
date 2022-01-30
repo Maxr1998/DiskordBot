@@ -141,7 +141,7 @@ class Bot : KoinComponent {
 
         logger.debug("Bot has user id ${botUser.id} and is in ${guilds.size} server(s):")
         guilds.forEach { guild ->
-            logger.debug("\u21b3 ${guild.name} [${guild.id}]")
+            logger.debug("\u21b3 ${guild.name} [id=${guild.id}, perms=${guild.permissions.value}]")
         }
     }
 
