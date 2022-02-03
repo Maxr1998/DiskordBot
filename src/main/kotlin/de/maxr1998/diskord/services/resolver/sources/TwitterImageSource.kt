@@ -7,6 +7,7 @@ import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import io.ktor.client.HttpClient
+import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Parameters
@@ -27,8 +28,12 @@ class TwitterImageSource(
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val normalizedUrl = url.cleanedCopy(host = TWITTER_HOST)
 
-        val response = httpClient.get<String>(normalizedUrl) {
-            userAgent(Constants.DISCORD_BOT_USER_AGENT)
+        val response = try {
+            httpClient.get<String>(normalizedUrl) {
+                userAgent(Constants.DISCORD_BOT_USER_AGENT)
+            }
+        } catch (e: ClientRequestException) {
+            return ImageResolver.Status.Unknown()
         }
 
         val document = Jsoup.parse(response, normalizedUrl.toString())
