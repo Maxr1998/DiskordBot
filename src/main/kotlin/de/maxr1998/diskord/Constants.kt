@@ -13,6 +13,8 @@ object Constants {
     const val MIN_VIDEO_SIZE = 360
 
     const val TWITTER_IMAGE_BASE_URL = "https://pbs.twimg.com/media/"
+    const val TWITTER_VIDEO_THUMB_BASE_URL = "https://pbs.twimg.com/ext_tw_video_thumb/"
+    const val TWITTER_VIDEO_BASE_URL = "https://video.twimg.com/ext_tw_video/"
     const val PINTEREST_IMAGE_BASE_URL = "https://i.pinimg.com"
 
     const val DISCORD_BOT_USER_AGENT = "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)"
