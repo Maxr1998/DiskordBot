@@ -1,13 +1,13 @@
 package de.maxr1998.diskord.services.resolver.sources
 
 import de.maxr1998.diskord.model.database.CommandEntryEntity
+import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import de.maxr1998.diskord.utils.http.loadJsoupDocument
 import io.ktor.client.HttpClient
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
-import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import mu.KotlinLogging
 import org.jsoup.Jsoup
@@ -22,16 +22,13 @@ class NaverPostImageSource(
         url.host.matches(NAVER_HOST_REGEX) && url.encodedPath.matches(NAVER_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.copy(
-            protocol = URLProtocol.HTTPS,
+        val normalizedUrl = url.cleanedCopy(
             host = NAVER_HOST,
             parameters = Parameters.build {
                 url.parameters["volumeNo"]?.let { volumeNo ->
                     append("volumeNo", volumeNo)
                 }
             },
-            fragment = "",
-            trailingQuery = false,
         )
 
         val document = httpClient.loadJsoupDocument(normalizedUrl) ?: return ImageResolver.Status.ParsingFailed()

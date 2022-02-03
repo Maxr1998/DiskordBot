@@ -5,6 +5,7 @@ import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.dto.imgur.ImgurImage
 import de.maxr1998.diskord.model.dto.imgur.ImgurResponse
+import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import io.ktor.client.HttpClient
@@ -12,8 +13,6 @@ import io.ktor.client.features.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
-import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import kotlinx.serialization.SerializationException
 import mu.KotlinLogging
@@ -31,13 +30,7 @@ class ImgurAlbumSource(
         url.host.matches(IMGUR_HOST_REGEX) && url.encodedPath.matches(IMGUR_ALBUM_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.copy(
-            protocol = URLProtocol.HTTPS,
-            host = IMGUR_HOST,
-            parameters = Parameters.Empty,
-            fragment = "",
-            trailingQuery = false,
-        )
+        val normalizedUrl = url.cleanedCopy(host = IMGUR_HOST)
 
         val albumId = normalizedUrl.encodedPath.removePrefix("/a/")
         val response = try {

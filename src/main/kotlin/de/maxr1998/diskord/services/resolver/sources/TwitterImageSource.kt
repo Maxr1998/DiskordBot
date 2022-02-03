@@ -3,12 +3,12 @@ package de.maxr1998.diskord.services.resolver.sources
 import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.services.UrlNormalizer
+import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.http.Parameters
-import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.userAgent
 import mu.KotlinLogging
@@ -24,13 +24,7 @@ class TwitterImageSource(
         url.host.matches(TWITTER_HOST_REGEX) && url.encodedPath.matches(TWITTER_STATUS_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.copy(
-            protocol = URLProtocol.HTTPS,
-            host = TWITTER_HOST,
-            parameters = Parameters.Empty,
-            fragment = "",
-            trailingQuery = false,
-        )
+        val normalizedUrl = url.cleanedCopy(host = TWITTER_HOST)
 
         val response = httpClient.get<String>(normalizedUrl) {
             userAgent(Constants.DISCORD_BOT_USER_AGENT)

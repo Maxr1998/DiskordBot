@@ -20,8 +20,8 @@ class NaverEntertainImageSource(
 ) : ImageSource(httpClient) {
 
     override fun supports(url: Url): Boolean =
-        (url.host == (NAVER_HOST) && url.encodedPath == NAVER_PATH) ||
-            (url.host == (NAVER_MOBILE_HOST) && url.encodedPath.matches(NAVER_MOBILE_PATH_REGEX))
+        (url.host == NAVER_HOST && url.encodedPath == NAVER_PATH) ||
+            (url.host == NAVER_MOBILE_HOST && url.encodedPath.matches(NAVER_MOBILE_PATH_REGEX))
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val normalizedUrl = URLBuilder(

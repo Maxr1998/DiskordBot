@@ -2,6 +2,9 @@ package de.maxr1998.diskord.services
 
 import de.maxr1998.diskord.Constants.PINTEREST_IMAGE_BASE_URL
 import de.maxr1998.diskord.Constants.TWITTER_IMAGE_BASE_URL
+import io.ktor.http.Parameters
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
 
 object UrlNormalizer {
     private val replacements = listOf(
@@ -14,4 +17,17 @@ object UrlNormalizer {
     fun normalizeUrls(content: String): String = replacements.fold(content) { acc, (search, replace) ->
         acc.replace(search, replace)
     }
+
+    fun Url.cleanedCopy(
+        host: String = this.host,
+        encodedPath: String = this.encodedPath,
+        parameters: Parameters = Parameters.Empty
+    ) = copy(
+        protocol = URLProtocol.HTTPS,
+        host = host,
+        encodedPath = encodedPath,
+        parameters = parameters,
+        fragment = "",
+        trailingQuery = false,
+    )
 }

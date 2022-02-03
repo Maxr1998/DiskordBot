@@ -1,6 +1,7 @@
 package de.maxr1998.diskord.services.resolver.sources
 
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.PersistingImageSource
 import io.ktor.client.HttpClient
@@ -10,8 +11,6 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
-import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
@@ -38,12 +37,8 @@ class InstagramImageSource(
         url.host == INSTAGRAM_HOST && url.encodedPath.matches(INSTAGRAM_POST_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.copy(
-            protocol = URLProtocol.HTTPS,
+        val normalizedUrl = url.cleanedCopy(
             encodedPath = url.encodedPath.replace(INSTAGRAM_POST_PATH_REGEX, "$1/"),
-            parameters = Parameters.Empty,
-            fragment = "",
-            trailingQuery = false,
         )
 
         // Request and parse post metadata from Instagram
