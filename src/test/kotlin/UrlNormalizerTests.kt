@@ -24,6 +24,7 @@ class UrlNormalizerTests : StringSpec({
             row("$TW_TEST_URL?format=jpg&name=orig"),
             row("$TW_TEST_URL.jpg?name=large"),
             row("$TW_TEST_URL.jpg:large"),
+            row("$TW_TEST_URL.jpg"),
         ) { input ->
             UrlNormalizer.normalizeUrls(input) shouldBe "$TW_TEST_URL?format=jpg&name=orig"
         }

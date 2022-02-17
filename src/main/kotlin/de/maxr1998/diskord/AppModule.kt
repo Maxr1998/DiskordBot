@@ -87,6 +87,6 @@ val appModule = module {
     single { InstagramImageSource(get(), get(), get()) } bind ImageSource::class
     single { NaverEntertainImageSource(get()) } bind ImageSource::class
     single { NaverPostImageSource(get()) } bind ImageSource::class
-    single { TwitterImageSource(get()) } bind ImageSource::class
+    single { TwitterImageSource(get(), get()) } bind ImageSource::class
     single { WeiboImageSource(get(), get()) } bind ImageSource::class
 }

@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data class Config(
     @SerialName("bot_token")
     val botToken: String,
+    @SerialName("twitter_token")
+    val twitterToken: String,
     @SerialName("imgur_client_id")
     val imgurClientId: String,
     @SerialName("instagram_session")
