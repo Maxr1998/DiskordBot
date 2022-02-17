@@ -3,8 +3,7 @@ package de.maxr1998.diskord.services.resolver.sources
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.model.database.CommandEntryEntity
-import de.maxr1998.diskord.model.dto.imgur.ImgurImage
-import de.maxr1998.diskord.model.dto.imgur.ImgurResponse
+import de.maxr1998.diskord.model.dto.imgur.ImgurApi
 import de.maxr1998.diskord.services.UrlNormalizer.cleanedCopy
 import de.maxr1998.diskord.services.resolver.ImageResolver
 import de.maxr1998.diskord.services.resolver.ImageSource
@@ -34,7 +33,7 @@ class ImgurAlbumSource(
 
         val albumId = normalizedUrl.encodedPath.removePrefix("/a/")
         val response = try {
-            httpClient.get<ImgurResponse<ImgurImage>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
+            httpClient.get<ImgurApi.Response<ImgurApi.Image>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
                 header(HttpHeaders.Authorization, "Client-ID ${config.imgurClientId}")
             }
         } catch (e: ClientRequestException) {
@@ -46,7 +45,7 @@ class ImgurAlbumSource(
             return ImageResolver.Status.Unknown()
         }
 
-        val imageUrls = response.data.map(ImgurImage::link).map { imageUrl ->
+        val imageUrls = response.data.map(ImgurApi.Image::link).map { imageUrl ->
             CommandEntryEntity.image(imageUrl, normalizedUrl)
         }
 
