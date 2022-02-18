@@ -12,16 +12,16 @@ import mu.KotlinLogging
 private val logger = KotlinLogging.logger {}
 
 @DslMarker
-annotation class DefaultCommandsModule
+annotation class StaticCommandsModule
 
-@DefaultCommandsModule
-fun BotBase.defaultCommands(commandPrefix: String = ".", commands: CommandBuilder.() -> Unit) {
+@StaticCommandsModule
+fun BotBase.staticCommands(commandPrefix: String = ".", commands: CommandBuilder.() -> Unit) {
     registerModule { dispatcher, context ->
         CommandBuilder(commandPrefix, dispatcher, context).commands()
     }
 }
 
-@DefaultCommandsModule
+@StaticCommandsModule
 class CommandBuilder(
     private val prefix: String,
     private val dispatcher: EventDispatcher<Unit>,

@@ -42,7 +42,7 @@ import de.maxr1998.diskord.command.RESOLVE
 import de.maxr1998.diskord.command.SOURCE
 import de.maxr1998.diskord.command.STATUS
 import de.maxr1998.diskord.command.buildEmbed
-import de.maxr1998.diskord.command.defaultCommands
+import de.maxr1998.diskord.command.staticCommands
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.UrlNormalizer
@@ -102,7 +102,7 @@ class Bot : KoinComponent {
                 }
             }
 
-            defaultCommands(commandPrefix = COMMAND_PREFIX) {
+            staticCommands(commandPrefix = COMMAND_PREFIX) {
                 // Bot management commands
                 command(STATUS) { message -> setStatus(this@bot, message) }
 
