@@ -2,6 +2,7 @@ package de.maxr1998.diskord.command.dynamic
 
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.exceptions.DiscordException
+import com.jessecorbett.diskord.api.gateway.EventDispatcher
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
@@ -10,16 +11,14 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class DynamicCommandsModule {
+/**
+ * Module that provides support for dynamic commands
+ */
+class DynamicCommandsModule : BotBase.BotModule {
 
-    /**
-     * Installs the feature that provides support for dynamic commands
-     */
-    fun install(botBase: BotBase) {
-        botBase.registerModule { dispatcher, context ->
-            dispatcher.onMessageCreate { message ->
-                context.handleMessage(message)
-            }
+    override fun register(dispatcher: EventDispatcher<Unit>, context: BotContext) {
+        dispatcher.onMessageCreate { message ->
+            context.handleMessage(message)
         }
     }
 

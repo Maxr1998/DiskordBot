@@ -134,7 +134,7 @@ class Bot : KoinComponent {
             }
 
             // Dynamic commands
-            DynamicCommandsModule().install(this)
+            registerModule(DynamicCommandsModule())
         }
 
         // Keep application alive
