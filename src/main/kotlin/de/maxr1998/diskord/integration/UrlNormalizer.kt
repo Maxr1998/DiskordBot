@@ -3,7 +3,7 @@ package de.maxr1998.diskord.integration
 import de.maxr1998.diskord.integration.resolver.sources.TwitterApi
 
 object UrlNormalizer {
-    private const val PINTEREST_IMAGE_BASE_URL = "https://i.pinimg.com"
+    const val PINTEREST_IMAGE_BASE_URL = "https://i.pinimg.com"
 
     private val replacements = listOf(
         Regex("""(${TwitterApi.TWITTER_IMAGE_BASE_URL}[\w_-]+)(?:\?format=|\.)([a-z]+)(?:(?:[&?]name=|:)(?:[a-z]+|\d+x\d+))?""") to "$1?format=$2&name=orig",
