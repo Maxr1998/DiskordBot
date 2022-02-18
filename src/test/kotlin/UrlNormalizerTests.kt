@@ -1,5 +1,6 @@
 import de.maxr1998.diskord.Constants
-import de.maxr1998.diskord.services.UrlNormalizer
+import de.maxr1998.diskord.integration.UrlNormalizer
+import de.maxr1998.diskord.integration.resolver.sources.TwitterApi
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.data.forAll
 import io.kotest.data.row
@@ -9,6 +10,7 @@ import io.kotest.property.arbitrary.codepoints
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 
+@Suppress("unused")
 class UrlNormalizerTests : StringSpec({
     "Random property tests" {
         checkAll(iterations = 20, Arb.string(codepoints = Arb.codepoints())) { input ->
@@ -37,6 +39,6 @@ class UrlNormalizerTests : StringSpec({
     }
 }) {
     companion object {
-        const val TW_TEST_URL = "${Constants.TWITTER_IMAGE_BASE_URL}EXXXXXXXXXXXXXX"
+        const val TW_TEST_URL = "${TwitterApi.TWITTER_IMAGE_BASE_URL}EXXXXXXXXXXXXXX"
     }
 }

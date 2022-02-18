@@ -16,47 +16,55 @@ import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.util.sendEmbed
 import com.jessecorbett.diskord.util.sendMessage
-import de.maxr1998.diskord.Command.ADD
-import de.maxr1998.diskord.Command.AUTO_RESPONDER
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_ADD
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_HIDE
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_LIST
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_PUBLISH
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_REMOVE
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_MODE_RENAME
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_SHORT
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_TYPE_GLOBAL
-import de.maxr1998.diskord.Command.AUTO_RESPONDER_TYPE_HIDDEN
-import de.maxr1998.diskord.Command.HELP
-import de.maxr1998.diskord.Command.HELP_ADMIN
-import de.maxr1998.diskord.Command.REMOVE
-import de.maxr1998.diskord.Command.REMOVE_SHORT
-import de.maxr1998.diskord.Command.RESOLVE
-import de.maxr1998.diskord.Command.SOURCE
-import de.maxr1998.diskord.Command.STATUS
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
+import de.maxr1998.diskord.command.ADD
+import de.maxr1998.diskord.command.AUTO_RESPONDER
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_ADD
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_HIDE
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_LIST
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_PUBLISH
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_REMOVE
+import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_RENAME
+import de.maxr1998.diskord.command.AUTO_RESPONDER_SHORT
+import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_GLOBAL
+import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_HIDDEN
+import de.maxr1998.diskord.command.DynamicCommandsModule
+import de.maxr1998.diskord.command.HELP
+import de.maxr1998.diskord.command.HELP_ADMIN
+import de.maxr1998.diskord.command.HELP_TITLE
+import de.maxr1998.diskord.command.PROMOTE
+import de.maxr1998.diskord.command.PROMOTE_ADMIN
+import de.maxr1998.diskord.command.PROMOTE_ADMIN_SHORT
+import de.maxr1998.diskord.command.PROMOTE_SHORT
+import de.maxr1998.diskord.command.REMOVE
+import de.maxr1998.diskord.command.REMOVE_SHORT
+import de.maxr1998.diskord.command.RESOLVE
+import de.maxr1998.diskord.command.SOURCE
+import de.maxr1998.diskord.command.STATUS
+import de.maxr1998.diskord.command.buildEmbed
+import de.maxr1998.diskord.command.defaultCommands
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
+import de.maxr1998.diskord.integration.UrlNormalizer
+import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository
 import de.maxr1998.diskord.model.repository.DynamicCommandRepository.CommandType
-import de.maxr1998.diskord.services.UrlNormalizer
-import de.maxr1998.diskord.services.resolver.ImageResolver
-import de.maxr1998.diskord.utils.DatabaseHelpers
-import de.maxr1998.diskord.utils.diskord.ExtractionResult
-import de.maxr1998.diskord.utils.diskord.args
-import de.maxr1998.diskord.utils.diskord.extractEntries
-import de.maxr1998.diskord.utils.diskord.getRepliedMessage
-import de.maxr1998.diskord.utils.diskord.getUrl
-import de.maxr1998.diskord.utils.diskord.getUser
-import de.maxr1998.diskord.utils.diskord.isAdmin
-import de.maxr1998.diskord.utils.diskord.isManager
-import de.maxr1998.diskord.utils.diskord.isOwner
-import de.maxr1998.diskord.utils.diskord.parsedContentType
-import de.maxr1998.diskord.utils.getAckEmoji
-import de.maxr1998.diskord.utils.logAdd
-import de.maxr1998.diskord.utils.logRemove
-import de.maxr1998.diskord.utils.toUrlOrNull
+import de.maxr1998.diskord.util.DatabaseHelpers
+import de.maxr1998.diskord.util.diskord.ExtractionResult
+import de.maxr1998.diskord.util.diskord.extractEntries
+import de.maxr1998.diskord.util.diskord.isAdmin
+import de.maxr1998.diskord.util.diskord.isManager
+import de.maxr1998.diskord.util.diskord.isOwner
+import de.maxr1998.diskord.util.extension.args
+import de.maxr1998.diskord.util.extension.getAckEmoji
+import de.maxr1998.diskord.util.extension.getRepliedMessage
+import de.maxr1998.diskord.util.extension.getUrl
+import de.maxr1998.diskord.util.extension.getUser
+import de.maxr1998.diskord.util.extension.parsedContentType
+import de.maxr1998.diskord.util.extension.toUrlOrNull
+import de.maxr1998.diskord.util.logAdd
+import de.maxr1998.diskord.util.logRemove
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.delay
@@ -99,10 +107,10 @@ class Bot : KoinComponent {
                 command(STATUS) { message -> setStatus(this@bot, message) }
 
                 // User management commands
-                command(Command.PROMOTE_ADMIN) { message -> promoteAdmin(message) }
-                command(Command.PROMOTE_ADMIN_SHORT) { message -> promoteAdmin(message) }
-                command(Command.PROMOTE) { message -> promoteManager(message) }
-                command(Command.PROMOTE_SHORT) { message -> promoteManager(message) }
+                command(PROMOTE_ADMIN) { message -> promoteAdmin(message) }
+                command(PROMOTE_ADMIN_SHORT) { message -> promoteAdmin(message) }
+                command(PROMOTE) { message -> promoteManager(message) }
+                command(PROMOTE_SHORT) { message -> promoteManager(message) }
 
                 // AR management commands
                 command(AUTO_RESPONDER) { message -> autoResponder(message) }

@@ -2,15 +2,15 @@ package de.maxr1998.diskord
 
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.services.resolver.ImageResolver
-import de.maxr1998.diskord.services.resolver.ImageSource
-import de.maxr1998.diskord.services.resolver.sources.ImgurAlbumSource
-import de.maxr1998.diskord.services.resolver.sources.InstagramImageSource
-import de.maxr1998.diskord.services.resolver.sources.NaverEntertainImageSource
-import de.maxr1998.diskord.services.resolver.sources.NaverPostImageSource
-import de.maxr1998.diskord.services.resolver.sources.TwitterImageSource
-import de.maxr1998.diskord.services.resolver.sources.WeiboImageSource
-import de.maxr1998.diskord.utils.DatabaseHelpers
+import de.maxr1998.diskord.integration.resolver.ImageResolver
+import de.maxr1998.diskord.integration.resolver.ImageSource
+import de.maxr1998.diskord.integration.resolver.sources.ImgurAlbumSource
+import de.maxr1998.diskord.integration.resolver.sources.InstagramImageSource
+import de.maxr1998.diskord.integration.resolver.sources.NaverEntertainImageSource
+import de.maxr1998.diskord.integration.resolver.sources.NaverPostImageSource
+import de.maxr1998.diskord.integration.resolver.sources.TwitterImageSource
+import de.maxr1998.diskord.integration.resolver.sources.WeiboImageSource
+import de.maxr1998.diskord.util.DatabaseHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent

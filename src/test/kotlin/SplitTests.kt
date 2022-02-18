@@ -1,8 +1,9 @@
-import de.maxr1998.diskord.utils.diskord.splitWhitespaceNonEmpty
+import de.maxr1998.diskord.util.extension.splitWhitespaceNonEmpty
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
+@Suppress("unused")
 class SplitTests : StringSpec({
     "Generic split should return correct output" {
         with("%cmd arg1 arg2".splitWhitespaceNonEmpty()) {

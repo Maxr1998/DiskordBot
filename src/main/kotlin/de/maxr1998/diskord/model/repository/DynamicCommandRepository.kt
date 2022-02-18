@@ -1,12 +1,12 @@
 package de.maxr1998.diskord.model.repository
 
+import de.maxr1998.diskord.model.CommandEntries
+import de.maxr1998.diskord.model.Commands
+import de.maxr1998.diskord.model.Entries
+import de.maxr1998.diskord.model.EntryType
 import de.maxr1998.diskord.model.database.CommandEntity
-import de.maxr1998.diskord.model.database.CommandEntries
 import de.maxr1998.diskord.model.database.CommandEntryEntity
-import de.maxr1998.diskord.model.database.Commands
-import de.maxr1998.diskord.model.database.Entries
-import de.maxr1998.diskord.model.database.EntryType
-import de.maxr1998.diskord.utils.exposed.suspendingTransaction
+import de.maxr1998.diskord.util.exposed.suspendingTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Count
 import org.jetbrains.exposed.sql.ResultRow

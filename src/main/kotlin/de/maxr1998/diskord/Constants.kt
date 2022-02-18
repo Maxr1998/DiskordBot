@@ -12,9 +12,5 @@ object Constants {
     const val MIN_IMAGE_SIZE = 640
     const val MIN_VIDEO_SIZE = 360
 
-    const val TWITTER_IMAGE_BASE_URL = "https://pbs.twimg.com/media/"
-    const val TWITTER_VIDEO_BASE_URL = "https://video.twimg.com/ext_tw_video/"
-    const val PINTEREST_IMAGE_BASE_URL = "https://i.pinimg.com"
-
     const val MAX_PREVIEW_IMAGES = 5
 }

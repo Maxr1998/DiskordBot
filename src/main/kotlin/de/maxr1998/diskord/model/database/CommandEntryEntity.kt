@@ -1,6 +1,7 @@
 package de.maxr1998.diskord.model.database
 
-import de.maxr1998.diskord.utils.isUrl
+import de.maxr1998.diskord.model.EntryType
+import de.maxr1998.diskord.util.extension.isUrl
 import io.ktor.http.Url
 import org.jetbrains.exposed.dao.id.EntityID
 
