@@ -2,18 +2,18 @@
 # Plugins
 detekt = "1.19.0"
 shadow = "7.1.2"
-dependencyUpdates = "0.40.0"
+dependencyUpdates = "0.42.0"
 
 # Libraries
-koin = "3.1.4"
+koin = "3.1.5"
 coroutines = "1.6.0"
-diskord = "2.1.1"
+diskord = "2.1.2"
 ktor = "1.6.7"
 exposed = "0.37.3"
 sqlitejdbc = "3.36.0.3"
 kotlinLogging = "2.1.21"
 logback = "1.2.10"
-kotest = "5.0.3"
+kotest = "5.1.0"
 jsoup = "1.14.3"
 
 [plugins]
