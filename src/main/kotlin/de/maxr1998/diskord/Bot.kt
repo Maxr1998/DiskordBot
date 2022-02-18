@@ -591,7 +591,7 @@ class Bot : KoinComponent {
     private suspend fun BotContext.resolve(message: Message) {
         val maySaveImages = isOwner(config, message)
 
-        val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE ")
+        val content = message.content.removePrefix("$COMMAND_PREFIX$RESOLVE")
         val url = content.trim().removeSurrounding("<", ">").toUrlOrNull() ?: run {
             message.respond("Not a link. Try something else.")
             return
