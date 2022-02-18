@@ -3,45 +3,74 @@ package de.maxr1998.diskord.command
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.exceptions.DiscordException
 import com.jessecorbett.diskord.api.gateway.EventDispatcher
-import com.jessecorbett.diskord.api.gateway.events.DiscordEvent
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
-import com.jessecorbett.diskord.bot.ClassicCommandModule
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-@DslMarker
-annotation class StaticCommandsModule
+typealias CommandHandler = suspend BotContext.(Message) -> Unit
 
-@StaticCommandsModule
-fun BotBase.staticCommands(commandPrefix: String = ".", commands: CommandBuilder.() -> Unit) {
-    registerModule { dispatcher, context ->
-        CommandBuilder(commandPrefix, dispatcher, context).commands()
-    }
+@DslMarker
+annotation class StaticCommands
+
+fun interface GuildPrefix {
+    suspend fun getPrefix(guildId: String?): String
 }
 
-@StaticCommandsModule
-class CommandBuilder(
-    private val prefix: String,
-    private val dispatcher: EventDispatcher<Unit>,
-    private val botContext: BotContext
+@StaticCommands
+fun BotBase.staticCommands(
+    commandPrefix: GuildPrefix = GuildPrefix { "." },
+    commands: CommandBuilder.() -> Unit,
 ) {
+    val handlers = CommandBuilder().apply { commands() }.build()
+    registerModule(StaticCommandsModule(commandPrefix, handlers))
+}
+
+@StaticCommands
+fun BotBase.staticCommands(
+    commandPrefix: String = ".",
+    commands: CommandBuilder.() -> Unit,
+) {
+    staticCommands(commandPrefix = { commandPrefix }, commands)
+}
+
+@StaticCommands
+class CommandBuilder {
+    private val commands: MutableMap<String, CommandHandler> = HashMap()
+
     /**
-     * Creates a command listener on [DiscordEvent.MESSAGE_CREATE] events
+     * Registers a classic command on the bot
      */
-    @ClassicCommandModule
-    fun command(key: String, block: suspend BotContext.(Message) -> Unit) {
+    @StaticCommands
+    fun command(key: String, block: CommandHandler) {
+        require(!commands.containsKey(key)) { "Handler was already registered for command '$key'" }
+        commands[key] = block
+    }
+
+    internal fun build(): Map<String, CommandHandler> = commands.toMap()
+}
+
+internal class StaticCommandsModule(
+    private val guildPrefix: GuildPrefix,
+    private val handlers: Map<String, CommandHandler>,
+) : BotBase.BotModule {
+    override fun register(dispatcher: EventDispatcher<Unit>, context: BotContext) {
         dispatcher.onMessageCreate { message ->
-            if (
-                message.content.startsWith("$prefix$key ") ||
-                message.content.startsWith("$prefix$key\n") ||
-                message.content == "$prefix$key"
-            ) {
-                try {
-                    botContext.block(message)
-                } catch (e: DiscordException) {
-                    logger.error("Handling command $key caused exception $e", e)
+            val prefix = guildPrefix.getPrefix(message.guildId)
+
+            if (message.content.startsWith(prefix)) {
+                val command = with(message.content) {
+                    val delimiterIndex = indexOfAny(charArrayOf(' ', '\n'))
+                    if (delimiterIndex == -1) substring(prefix.length) else substring(prefix.length, delimiterIndex)
+                }
+
+                handlers[command]?.let { handler ->
+                    try {
+                        context.handler(message)
+                    } catch (e: DiscordException) {
+                        logger.error("Handling command $command caused exception $e", e)
+                    }
                 }
             }
         }
