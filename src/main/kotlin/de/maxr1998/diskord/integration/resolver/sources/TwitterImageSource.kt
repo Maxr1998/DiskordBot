@@ -1,11 +1,11 @@
 package de.maxr1998.diskord.integration.resolver.sources
 
+import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
-import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.util.extension.cleanedCopy
 import io.ktor.client.HttpClient
 import io.ktor.client.features.ClientRequestException

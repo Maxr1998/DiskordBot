@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.command
+package de.maxr1998.diskord.command.dynamic
 
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.exceptions.DiscordException
@@ -6,7 +6,6 @@ import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
 import de.maxr1998.diskord.Constants
-import de.maxr1998.diskord.model.repository.DynamicCommandRepository
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}

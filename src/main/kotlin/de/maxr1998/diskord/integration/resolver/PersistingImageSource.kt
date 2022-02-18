@@ -1,8 +1,8 @@
 package de.maxr1998.diskord.integration.resolver
 
+import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.model.database.CommandEntryEntity
 import de.maxr1998.diskord.util.http.downloadFile
 import io.ktor.client.HttpClient
 import io.ktor.http.Url

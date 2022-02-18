@@ -1,6 +1,6 @@
 package de.maxr1998.diskord.integration.resolver
 
-import de.maxr1998.diskord.model.database.CommandEntryEntity
+import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import io.ktor.http.Url
 
 class ImageResolver(

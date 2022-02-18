@@ -1,7 +1,7 @@
 package de.maxr1998.diskord.util
 
 import com.jessecorbett.diskord.api.common.User
-import de.maxr1998.diskord.model.database.CommandEntryEntity
+import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import mu.KLogger
 
 fun KLogger.logAdd(user: User, command: String, entries: List<CommandEntryEntity>) {

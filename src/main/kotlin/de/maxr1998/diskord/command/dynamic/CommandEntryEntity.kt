@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.model.database
+package de.maxr1998.diskord.command.dynamic
 
 import de.maxr1998.diskord.model.EntryType
 import de.maxr1998.diskord.util.extension.isUrl

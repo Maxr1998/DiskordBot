@@ -28,7 +28,6 @@ import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_RENAME
 import de.maxr1998.diskord.command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_GLOBAL
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_HIDDEN
-import de.maxr1998.diskord.command.DynamicCommandsModule
 import de.maxr1998.diskord.command.HELP
 import de.maxr1998.diskord.command.HELP_ADMIN
 import de.maxr1998.diskord.command.HELP_TITLE
@@ -42,14 +41,15 @@ import de.maxr1998.diskord.command.RESOLVE
 import de.maxr1998.diskord.command.SOURCE
 import de.maxr1998.diskord.command.STATUS
 import de.maxr1998.diskord.command.buildEmbed
+import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
+import de.maxr1998.diskord.command.dynamic.DynamicCommandRepository
+import de.maxr1998.diskord.command.dynamic.DynamicCommandRepository.CommandType
+import de.maxr1998.diskord.command.dynamic.DynamicCommandsModule
 import de.maxr1998.diskord.command.staticCommands
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
-import de.maxr1998.diskord.model.database.CommandEntryEntity
-import de.maxr1998.diskord.model.repository.DynamicCommandRepository
-import de.maxr1998.diskord.model.repository.DynamicCommandRepository.CommandType
 import de.maxr1998.diskord.util.DatabaseHelpers
 import de.maxr1998.diskord.util.diskord.ExtractionResult
 import de.maxr1998.diskord.util.diskord.extractEntries
