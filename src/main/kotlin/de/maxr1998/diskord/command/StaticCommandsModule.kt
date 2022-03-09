@@ -5,6 +5,7 @@ import com.jessecorbett.diskord.api.exceptions.DiscordException
 import com.jessecorbett.diskord.api.gateway.EventDispatcher
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
+import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -68,6 +69,8 @@ internal class StaticCommandsModule(
                 handlers[command]?.let { handler ->
                     try {
                         context.handler(message)
+                    } catch (e: TimeoutCancellationException) {
+                        logger.error("Timed out while handling $command", e)
                     } catch (e: DiscordException) {
                         logger.error("Handling command $command caused exception $e", e)
                     }

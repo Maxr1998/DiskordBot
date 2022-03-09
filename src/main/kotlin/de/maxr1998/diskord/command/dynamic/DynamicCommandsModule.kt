@@ -7,6 +7,7 @@ import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
 import de.maxr1998.diskord.Constants
+import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -36,6 +37,8 @@ class DynamicCommandsModule : BotBase.BotModule {
 
         try {
             message.respond(content)
+        } catch (e: TimeoutCancellationException) {
+            logger.error("Timed out while replying to %$command", e)
         } catch (e: DiscordException) {
             logger.error("Replying to %$command caused exception $e", e)
         }
