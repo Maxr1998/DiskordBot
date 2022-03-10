@@ -35,11 +35,8 @@ suspend fun HttpClient.loadJsoupDocument(url: Url): Document? = getHtml(url).exe
     } else null
 }
 
-suspend fun HttpClient.downloadFile(url: String, out: File, overwrite: Boolean = false): Boolean {
-    if (out.exists() && !overwrite) {
-        // Assume same name = same content
-        return true
-    }
+suspend fun HttpClient.downloadFile(url: String, out: File): Boolean {
+    if (out.isDirectory) return false
 
     val response = try {
         get<HttpResponse>(url)
@@ -51,7 +48,18 @@ suspend fun HttpClient.downloadFile(url: String, out: File, overwrite: Boolean =
         return false
     }
 
-    response.content.copyAndClose(out.writeChannel())
+    val tmp = File(out.parent, "." + out.name)
 
-    return true
+    try {
+        response.content.copyAndClose(tmp.writeChannel())
+    } catch (e: Exception) {
+        return false
+    }
+
+    // Delete if target exists
+    if (out.exists()) {
+        out.delete()
+    }
+
+    return tmp.renameTo(out)
 }
