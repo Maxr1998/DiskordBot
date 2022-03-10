@@ -86,10 +86,17 @@ class InstagramImageSource(
             mutex.unlock()
         }
 
-        logger.debug("Resolved ${urls.size} images from Instagram post")
-
         // Download images
-        return Result.success(ImageResolver.Resolved(normalizedUrl, persist(urls, normalizedUrl, shortcode)))
+        val imageUrls = persist(urls, normalizedUrl, shortcode)
+
+        return when {
+            imageUrls.isNotEmpty() -> {
+                logger.debug("Resolved ${imageUrls.size} images or videos from Instagram post")
+
+                Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
+            }
+            else -> ImageResolver.Status.Unknown()
+        }
     }
 
     companion object {
