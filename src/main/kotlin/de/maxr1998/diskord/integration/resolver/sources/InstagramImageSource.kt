@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -70,8 +71,13 @@ class InstagramImageSource(
             val carouselMedia = item["carousel_media"]!!.jsonArray
             val urls = carouselMedia.map { mediaElement ->
                 val mediaObject = mediaElement.jsonObject
-                val imageCandidates = mediaObject["image_versions2"]!!.jsonObject["candidates"]!!.jsonArray
-                imageCandidates.first().jsonObject["url"]!!.jsonPrimitive.content
+                when (mediaObject["media_type"]!!.jsonPrimitive.int) {
+                    1 /* image */ -> {
+                        val imageCandidates = mediaObject["image_versions2"]!!.jsonObject["candidates"]!!.jsonArray
+                        imageCandidates.first().jsonObject["url"]!!.jsonPrimitive.content
+                    }
+                    else -> null
+                }
             }
 
             shortcode to urls
