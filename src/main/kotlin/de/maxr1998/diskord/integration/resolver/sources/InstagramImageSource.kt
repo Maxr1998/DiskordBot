@@ -61,27 +61,22 @@ class InstagramImageSource(
             if (startIndex < 0) return ImageResolver.Status.ParsingFailed()
             val endIndex = body.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
             if (endIndex < 0) return ImageResolver.Status.ParsingFailed()
-            val sharedDataString = body.substring(startIndex, endIndex).removeSuffix(")")
-            val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
+            val additionalDataString = body.substring(startIndex, endIndex).removeSuffix(")")
+            val additionalData: JsonObject = json.parseToJsonElement(additionalDataString).jsonObject
 
-            // Ugly, blame complex response JSON structure
-            val graphqlRoot = when {
-                "graphql" in sharedData -> sharedData
-                else -> sharedData["entry_data"]!!
-                    .jsonObject["PostPage"]!!
-                    .jsonArray.first()
-                    .jsonObject
+            val item = additionalData["items"]!!.jsonArray.first().jsonObject
+            val shortcode = item["code"]!!.jsonPrimitive.content
+
+            val carouselMedia = item["carousel_media"]!!.jsonArray
+            val urls = carouselMedia.map { mediaElement ->
+                val mediaObject = mediaElement.jsonObject
+                val imageCandidates = mediaObject["image_versions2"]!!.jsonObject["candidates"]!!.jsonArray
+                imageCandidates.first().jsonObject["url"]!!.jsonPrimitive.content
             }
-            val shortcodeMedia = graphqlRoot["graphql"]!!.jsonObject["shortcode_media"]!!.jsonObject
-            val shortcode = shortcodeMedia["shortcode"]!!.jsonPrimitive.content
-            val edges = shortcodeMedia["edge_sidecar_to_children"]?.run { jsonObject["edges"]!!.jsonArray }
-            val urls = edges?.map { edge ->
-                edge.jsonObject["node"]!!.jsonObject["display_url"]!!.jsonPrimitive.content
-            } ?: listOf(shortcodeMedia["display_url"]!!.jsonPrimitive.content)
 
             shortcode to urls
         } catch (e: NullPointerException) {
-            logger.error("Couldn't parse response")
+            logger.error("Couldn't parse response", e)
             return ImageResolver.Status.ParsingFailed()
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
@@ -102,7 +97,7 @@ class InstagramImageSource(
 
         const val INSTAGRAM_HOST = "www.instagram.com"
         private val INSTAGRAM_POST_PATH_REGEX = Regex("""(?:/[a-z0-9_.]{1,30})?(/p/[^/]+)/?""")
-        private const val INSTAGRAM_CONTENT_START_MARKER = """{"graphql":{"shortcode_media":{"""
+        private const val INSTAGRAM_CONTENT_START_MARKER = """{"items":["""
         private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
     }
 }
