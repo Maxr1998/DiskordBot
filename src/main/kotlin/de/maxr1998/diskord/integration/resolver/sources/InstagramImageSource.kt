@@ -16,6 +16,7 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
@@ -68,8 +69,8 @@ class InstagramImageSource(
             val item = additionalData["items"]!!.jsonArray.first().jsonObject
             val shortcode = item["code"]!!.jsonPrimitive.content
 
-            val carouselMedia = item["carousel_media"]!!.jsonArray
-            val urls = carouselMedia.map { mediaElement ->
+            val mediaElements: List<JsonElement> = item["carousel_media"]?.jsonArray ?: listOf(item)
+            val urls = mediaElements.map { mediaElement ->
                 val mediaObject = mediaElement.jsonObject
                 when (mediaObject["media_type"]!!.jsonPrimitive.int) {
                     1 /* image */ -> {
