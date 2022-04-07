@@ -74,7 +74,7 @@ tasks {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_17.toString()
             @Suppress("SuspiciousCollectionReassignment")
-            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
+            freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
         }
     }
 
