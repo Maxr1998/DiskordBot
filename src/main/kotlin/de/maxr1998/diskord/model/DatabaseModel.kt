@@ -11,6 +11,8 @@ private const val MAX_ID_LENGTH = 20 // ceil(log(2^64))
 private const val MAX_COMMAND_LENGTH = 32
 private const val MAX_CONTENT_LENGTH = 1024
 
+const val GUILD_GLOBAL = "global"
+
 object Commands : IntIdTable("commands") {
     val guild = varchar("server", MAX_ID_LENGTH).index()
     val command = varchar("command", MAX_COMMAND_LENGTH)
@@ -19,8 +21,6 @@ object Commands : IntIdTable("commands") {
     init {
         uniqueIndex(guild, command)
     }
-
-    const val GUILD_GLOBAL = "global"
 
     val isGlobal: Op<Boolean>
         get() = guild eq GUILD_GLOBAL

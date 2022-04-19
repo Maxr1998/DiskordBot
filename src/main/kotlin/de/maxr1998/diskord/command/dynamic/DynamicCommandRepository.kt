@@ -4,6 +4,7 @@ import de.maxr1998.diskord.model.CommandEntries
 import de.maxr1998.diskord.model.Commands
 import de.maxr1998.diskord.model.Entries
 import de.maxr1998.diskord.model.EntryType
+import de.maxr1998.diskord.model.GUILD_GLOBAL
 import de.maxr1998.diskord.util.exposed.suspendingTransaction
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.Count
