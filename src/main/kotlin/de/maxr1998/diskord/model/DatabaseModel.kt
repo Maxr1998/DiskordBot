@@ -7,7 +7,11 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 
-private const val MAX_ID_LENGTH = 20 // ceil(log(2^64))
+/**
+ * Maximum length of a Discord snowflake id.
+ * 64 bits, so `ceil(log(2^64))`
+ */
+private const val MAX_ID_LENGTH = 20
 private const val MAX_COMMAND_LENGTH = 32
 private const val MAX_CONTENT_LENGTH = 1024
 
@@ -50,4 +54,17 @@ object Entries : LongIdTable("entries") {
     val type = integer("type").default(EntryType.UNKNOWN).index()
     val width = integer("width").default(0)
     val height = integer("height").default(0)
+}
+
+object Permissions : Table("permissions") {
+    val guild = varchar("guild", MAX_ID_LENGTH)
+    val user = varchar("user", MAX_ID_LENGTH)
+    val permissions = long("permissions")
+
+    init {
+        uniqueIndex(guild, user)
+    }
+
+    val isGlobal: Op<Boolean>
+        get() = guild eq GUILD_GLOBAL
 }

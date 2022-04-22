@@ -10,6 +10,7 @@ import de.maxr1998.diskord.integration.resolver.sources.NaverEntertainImageSourc
 import de.maxr1998.diskord.integration.resolver.sources.NaverPostImageSource
 import de.maxr1998.diskord.integration.resolver.sources.TwitterImageSource
 import de.maxr1998.diskord.integration.resolver.sources.WeiboImageSource
+import de.maxr1998.diskord.permission.PermissionManager
 import de.maxr1998.diskord.util.DatabaseHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
@@ -81,6 +82,8 @@ val appModule = module {
     single {
         DatabaseHelpers(databaseFile = File(Constants.DATABASE_FILE_NAME))
     }
+
+    single { PermissionManager() }
 
     single { ImageResolver(getAll()) }
     single { ImgurAlbumSource(get(), get()) } bind ImageSource::class
