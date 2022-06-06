@@ -7,6 +7,12 @@ object Instagrapi {
     @Serializable
     data class MediaInfo(
         val code: String,
+        @SerialName("thumbnail_url")
+        val thumbnailUrl: String?,
+        @SerialName("video_url")
+        val videoUrl: String?,
+        @SerialName("media_type")
+        val mediaType: Int,
         val resources: List<Resource>,
     ) {
         @Serializable

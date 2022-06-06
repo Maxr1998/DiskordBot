@@ -63,7 +63,10 @@ class InstagramImageSource(
                 header(HttpHeaders.Accept, ContentType.Application.Json)
             }
 
-            mediaInfo.code to mediaInfo.resources.map(Instagrapi.MediaInfo.Resource::thumbnailUrl)
+            val urls = mediaInfo.thumbnailUrl?.let(::listOf)
+                ?: mediaInfo.resources.map(Instagrapi.MediaInfo.Resource::thumbnailUrl)
+
+            mediaInfo.code to urls
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
             return ImageResolver.Status.Unknown()
