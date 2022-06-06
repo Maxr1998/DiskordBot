@@ -1,6 +1,5 @@
 package de.maxr1998.diskord
 
-import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
@@ -14,13 +13,9 @@ import de.maxr1998.diskord.util.DatabaseHelpers
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent
-import io.ktor.client.features.cookies.HttpCookies
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
-import io.ktor.http.Cookie
-import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import mu.KLoggable
@@ -55,15 +50,6 @@ val appModule = module {
     single {
         HttpClient(Java) {
             BrowserUserAgent()
-            install(HttpCookies) {
-                default {
-                    val config: Config by get<ConfigHelpers>()
-                    if (config.instagramSession.isNotEmpty()) {
-                        val url = URLBuilder(protocol = URLProtocol.HTTPS, host = InstagramImageSource.INSTAGRAM_HOST).build()
-                        storage.addCookie(url, Cookie("sessionid", config.instagramSession))
-                    }
-                }
-            }
             install(Logging) {
                 logger = get()
                 level = LogLevel.HEADERS
@@ -84,7 +70,7 @@ val appModule = module {
 
     single { ImageResolver(getAll()) }
     single { ImgurAlbumSource(get(), get()) } bind ImageSource::class
-    single { InstagramImageSource(get(), get(), get()) } bind ImageSource::class
+    single { InstagramImageSource(get(), get()) } bind ImageSource::class
     single { NaverEntertainImageSource(get()) } bind ImageSource::class
     single { NaverPostImageSource(get()) } bind ImageSource::class
     single { TwitterImageSource(get(), get()) } bind ImageSource::class

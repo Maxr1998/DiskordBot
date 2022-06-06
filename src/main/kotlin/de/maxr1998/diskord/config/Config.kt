@@ -11,6 +11,8 @@ data class Config(
     val twitterToken: String,
     @SerialName("imgur_client_id")
     val imgurClientId: String,
+    @SerialName("instagrapi_url")
+    val instagrapiUrl: String,
     @SerialName("instagram_session")
     val instagramSession: String,
     @SerialName("owner_id")

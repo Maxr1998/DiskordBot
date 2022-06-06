@@ -5,30 +5,20 @@ import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.PersistingImageSource
 import de.maxr1998.diskord.util.extension.cleanedCopy
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Parameters
 import io.ktor.http.Url
-import io.ktor.http.isSuccess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
 class InstagramImageSource(
-    private val json: Json,
     httpClient: HttpClient,
     configHelpers: ConfigHelpers,
 ) : PersistingImageSource(httpClient, configHelpers) {
@@ -51,17 +41,29 @@ class InstagramImageSource(
             // Apply cooldown, negative delays are ignored
             delay(lastRequestTimeMillis + COOLDOWN_MS - System.currentTimeMillis())
 
-            val response = httpClient.get<HttpResponse>(normalizedUrl) {
-                header(HttpHeaders.Accept, ContentType.Text.Html)
-            }
-            when {
-                !response.status.isSuccess() -> return ImageResolver.Status.Unknown()
-                response.call.request.url.encodedPath.startsWith("/accounts/login") -> return ImageResolver.Status.RateLimited()
+            // Get media id from URL
+            val mediaId = httpClient.get<Long>(
+                host = config.instagrapiUrl,
+                port = 8000,
+                path = "media/pk_from_url",
+            ) {
+                this.url.parameters.append("url", normalizedUrl.toString())
             }
 
-            val body = response.receive<String>()
+            // Resolve media info and image URLs via instagrapi
+            val mediaInfo = httpClient.submitForm<Instagrapi.MediaInfo>(
+                host = config.instagrapiUrl,
+                port = 8000,
+                path = "media/info",
+                formParameters = Parameters.build {
+                    append("sessionid", config.instagramSession)
+                    append("pk", mediaId.toString())
+                }
+            ) {
+                header(HttpHeaders.Accept, ContentType.Application.Json)
+            }
 
-            parseGraphql(body) ?: parseItemsJson(body) ?: return ImageResolver.Status.ParsingFailed()
+            mediaInfo.code to mediaInfo.resources.map(Instagrapi.MediaInfo.Resource::thumbnailUrl)
         } catch (e: Exception) {
             logger.error("Error while resolving Instagram URL", e)
             return ImageResolver.Status.Unknown()
@@ -83,81 +85,10 @@ class InstagramImageSource(
         }
     }
 
-    /**
-     * GraphQL JSON embedded in the page
-     */
-    private fun parseGraphql(body: String): Pair<String, List<String?>>? = try {
-        val startIndex = body.indexOf(INSTAGRAM_SHARED_DATA_START_MARKER)
-        require(startIndex >= 0) { "Couldn't find start marker" }
-        val endIndex = body.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
-        require(endIndex >= 0) { "Couldn't find end marker" }
-        val sharedDataString = body.substring(startIndex + INSTAGRAM_SHARED_DATA_START_MARKER.length, endIndex)
-        val sharedData: JsonObject = json.parseToJsonElement(sharedDataString).jsonObject
-
-        val graphqlRoot = when {
-            "graphql" in sharedData -> sharedData
-            else -> sharedData["entry_data"]!!
-                .jsonObject["PostPage"]!!
-                .jsonArray.first()
-                .jsonObject
-        }
-
-        val shortcodeMedia = graphqlRoot["graphql"]!!.jsonObject["shortcode_media"]!!.jsonObject
-        val shortcode = shortcodeMedia["shortcode"]!!.jsonPrimitive.content
-        val edges = shortcodeMedia["edge_sidecar_to_children"]?.run { jsonObject["edges"]!!.jsonArray }
-        val urls = edges?.map { edge ->
-            val node = edge.jsonObject["node"]!!.jsonObject
-            when {
-                node["is_video"]!!.jsonPrimitive.boolean -> null
-                else -> node["display_url"]!!.jsonPrimitive.content
-            }
-        } ?: listOf(shortcodeMedia["display_url"]!!.jsonPrimitive.content)
-
-        shortcode to urls
-    } catch (e: Exception) {
-        logger.error("Couldn't parse response", e)
-        null
-    }
-
-    /**
-     * A simpler JSON structure, temporarily used in early 2022 with higher-quality pictures, possibly an A/B test.
-     */
-    private fun parseItemsJson(body: String): Pair<String, List<String?>>? = try {
-        val startIndex = body.indexOf(INSTAGRAM_CONTENT_START_MARKER)
-        require(startIndex >= 0) { "Couldn't find start marker" }
-        val endIndex = body.indexOf(INSTAGRAM_CONTENT_END_MARKER, startIndex = startIndex)
-        require(endIndex >= 0) { "Couldn't find end marker" }
-        val additionalDataString = body.substring(startIndex, endIndex).removeSuffix(")")
-        val additionalData: JsonObject = json.parseToJsonElement(additionalDataString).jsonObject
-
-        val item = additionalData["items"]!!.jsonArray.first().jsonObject
-        val shortcode = item["code"]!!.jsonPrimitive.content
-
-        val mediaElements: List<JsonElement> = item["carousel_media"]?.jsonArray ?: listOf(item)
-        val urls = mediaElements.map { mediaElement ->
-            val mediaObject = mediaElement.jsonObject
-            when (mediaObject["media_type"]!!.jsonPrimitive.int) {
-                1 /* image */ -> {
-                    val imageCandidates = mediaObject["image_versions2"]!!.jsonObject["candidates"]!!.jsonArray
-                    imageCandidates.first().jsonObject["url"]!!.jsonPrimitive.content
-                }
-                else -> null
-            }
-        }
-
-        shortcode to urls
-    } catch (e: Exception) {
-        logger.error("Couldn't parse response", e)
-        null
-    }
-
     companion object {
         private const val COOLDOWN_MS = 3000L
 
         const val INSTAGRAM_HOST = "www.instagram.com"
         private val INSTAGRAM_POST_PATH_REGEX = Regex("""(?:/[a-z\d_.]{1,30})?(/p/[^/]+)/?""")
-        private const val INSTAGRAM_SHARED_DATA_START_MARKER = """window._sharedData = """
-        private const val INSTAGRAM_CONTENT_START_MARKER = """{"items":["""
-        private const val INSTAGRAM_CONTENT_END_MARKER = ";</script>"
     }
 }
