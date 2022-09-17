@@ -112,6 +112,7 @@ object DynamicCommandRepository {
                 insert[type] = commandEntryEntity.type
                 insert[width] = commandEntryEntity.width
                 insert[height] = commandEntryEntity.height
+                insert[flags] = commandEntryEntity.flags
             }
             ?: return@suspendingTransaction false // possible race-condition?
 
@@ -130,6 +131,7 @@ object DynamicCommandRepository {
                 type = entry[Entries.type],
                 width = entry[Entries.width],
                 height = entry[Entries.height],
+                flags = entry[Entries.flags],
             )
         }
     }

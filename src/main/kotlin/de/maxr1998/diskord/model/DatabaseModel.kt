@@ -50,4 +50,5 @@ object Entries : LongIdTable("entries") {
     val type = integer("type").default(EntryType.UNKNOWN).index()
     val width = integer("width").default(0)
     val height = integer("height").default(0)
+    val flags = integer("flags").default(0)
 }
