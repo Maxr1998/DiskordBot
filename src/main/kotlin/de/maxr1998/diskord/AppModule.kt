@@ -10,6 +10,7 @@ import de.maxr1998.diskord.integration.resolver.sources.NaverPostImageSource
 import de.maxr1998.diskord.integration.resolver.sources.TwitterImageSource
 import de.maxr1998.diskord.integration.resolver.sources.WeiboImageSource
 import de.maxr1998.diskord.util.DatabaseHelpers
+import de.maxr1998.diskord.util.EntriesProcessor
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent
@@ -57,4 +58,6 @@ val appModule = module {
     single { NaverPostImageSource(get()) } bind ImageSource::class
     single { TwitterImageSource(get(), get()) } bind ImageSource::class
     single { WeiboImageSource(get(), get()) } bind ImageSource::class
+
+    single { EntriesProcessor(get()) }
 }

@@ -28,6 +28,7 @@ import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_RENAME
 import de.maxr1998.diskord.command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_GLOBAL
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_HIDDEN
+import de.maxr1998.diskord.command.CHECK_ALL
 import de.maxr1998.diskord.command.HELP
 import de.maxr1998.diskord.command.HELP_ADMIN
 import de.maxr1998.diskord.command.HELP_TITLE
@@ -52,6 +53,7 @@ import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.util.DatabaseHelpers
+import de.maxr1998.diskord.util.EntriesProcessor
 import de.maxr1998.diskord.util.diskord.ExtractionResult
 import de.maxr1998.diskord.util.diskord.extractEntries
 import de.maxr1998.diskord.util.diskord.isAdmin
@@ -77,11 +79,12 @@ import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("DuplicatedCode")
+@Suppress("DuplicatedCode", "TooManyFunctions")
 class Bot : KoinComponent {
     private val configHelpers: ConfigHelpers = get()
     private val databaseHelpers: DatabaseHelpers = get()
     private val imageResolver: ImageResolver by inject()
+    private val entriesProcessor: EntriesProcessor by inject()
     private val config: Config by configHelpers
     private lateinit var botUser: User
 
@@ -121,6 +124,7 @@ class Bot : KoinComponent {
                 command(REMOVE_SHORT) { message -> removeEntry(message) }
                 command(SOURCE) { message -> getSource(message) }
                 command(SET_SOURCE) { message -> setSource(message) }
+                command(CHECK_ALL) { message -> checkAll(message) }
 
                 // Helper commands
                 command(RESOLVE) { message -> resolve(message) }
@@ -632,6 +636,15 @@ class Bot : KoinComponent {
         } else {
             message.respond("Unable to find any entries to update.")
         }
+    }
+
+    private suspend fun BotContext.checkAll(message: Message) {
+        if (!isOwner(config, message)) {
+            message.reply("Only the owner can request to check all entries")
+            return
+        }
+
+        entriesProcessor.checkAndFlagRemovedLinks()
     }
 
     private suspend fun BotContext.resolve(message: Message) {
