@@ -28,6 +28,8 @@ naming:
     packagePattern: '[a-z]+(\.[a-zA-Z][a-z0-9]*)*'
 
 style:
+  LoopWithTooManyJumpStatements:
+    active: false
   MaxLineLength:
     maxLineLength: 200
   NewLineAtEndOfFile:
