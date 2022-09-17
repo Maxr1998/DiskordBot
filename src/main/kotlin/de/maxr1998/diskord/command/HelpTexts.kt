@@ -41,6 +41,15 @@ Replying with this command to a message by the bot, omitting the entry, will tre
 Additionally, it's possible to react to a message by the bot with ❓ to retrieve the source.
 """
 
+const val SET_SOURCE_DESC = """```
+$COMMAND_PREFIX$SET_SOURCE source entry
+```
+Updates the source for the given entries.
+Automatically splits on lines, allowing to update multiple entries at once.
+
+Replying with this command to a message, omitting the entry, will treat the replied message as content.
+"""
+
 const val RESOLVE_DESC = """```
 $COMMAND_PREFIX$RESOLVE link
 ```
@@ -80,6 +89,11 @@ fun Embed.buildEmbed(command: String?) {
                 EmbedField(
                     name = SOURCE.uppercase(),
                     value = SOURCE_DESC,
+                    inline = false,
+                ),
+                EmbedField(
+                    name = SET_SOURCE.uppercase(),
+                    value = SET_SOURCE_DESC,
                     inline = false,
                 ),
                 EmbedField(
@@ -135,6 +149,10 @@ fun Embed.buildEmbed(command: String?) {
         SOURCE -> {
             title = SOURCE.uppercase()
             description = SOURCE_DESC
+        }
+        SET_SOURCE -> {
+            title = SET_SOURCE.uppercase()
+            description = SET_SOURCE_DESC
         }
         RESOLVE -> {
             title = RESOLVE.uppercase()

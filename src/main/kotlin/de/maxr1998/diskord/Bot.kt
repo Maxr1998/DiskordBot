@@ -38,6 +38,7 @@ import de.maxr1998.diskord.command.PROMOTE_SHORT
 import de.maxr1998.diskord.command.REMOVE
 import de.maxr1998.diskord.command.REMOVE_SHORT
 import de.maxr1998.diskord.command.RESOLVE
+import de.maxr1998.diskord.command.SET_SOURCE
 import de.maxr1998.diskord.command.SOURCE
 import de.maxr1998.diskord.command.STATUS
 import de.maxr1998.diskord.command.buildEmbed
@@ -119,6 +120,7 @@ class Bot : KoinComponent {
                 command(REMOVE) { message -> removeEntry(message) }
                 command(REMOVE_SHORT) { message -> removeEntry(message) }
                 command(SOURCE) { message -> getSource(message) }
+                command(SET_SOURCE) { message -> setSource(message) }
 
                 // Helper commands
                 command(RESOLVE) { message -> resolve(message) }
@@ -587,6 +589,46 @@ class Bot : KoinComponent {
             message.respond("Found source at $source")
         } else {
             message.respond("Missing source for content")
+        }
+    }
+
+    private suspend fun BotContext.setSource(message: Message) {
+        // Only owner, admins and managers can update the source
+        if (!isManager(config, message)) {
+            message.reply("Only managers can update the source")
+            return
+        }
+
+        val args = message.args(limit = 2)
+
+        val source = args.getOrNull(0) ?: run {
+            message.channel.showHelp(SET_SOURCE)
+            return
+        }
+
+        val entries = when (val extractionResult = extractEntries(args, message)) {
+            null -> {
+                message.channel.showHelp(SET_SOURCE)
+                return
+            }
+            is ExtractionResult.Raw -> listOf(extractionResult.content)
+            is ExtractionResult.Lines -> extractionResult.content
+            is ExtractionResult.Attachments -> {
+                message.channel.showHelp(SET_SOURCE)
+                return
+            }
+        }
+
+        if (DynamicCommandRepository.setSourceForEntries(source, entries)) {
+            message.react(config.getAckEmoji())
+            val entriesString = entries.joinToString(
+                separator = ",",
+                prefix = "[",
+                postfix = "]",
+            )
+            logger.debug("${message.author.username} set source for $entriesString to $source")
+        } else {
+            message.respond("Unable to find any entries to update.")
         }
     }
 

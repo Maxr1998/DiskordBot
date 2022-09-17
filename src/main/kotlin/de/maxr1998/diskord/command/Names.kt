@@ -26,6 +26,7 @@ const val ADD = "add"
 const val REMOVE = "remove"
 const val REMOVE_SHORT = "rm"
 const val SOURCE = "source"
+const val SET_SOURCE = "setsource"
 
 // Helper commands
 const val RESOLVE = "resolve"
