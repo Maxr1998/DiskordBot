@@ -12,6 +12,10 @@ import io.ktor.client.features.expectSuccess
 import io.ktor.client.request.head
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import mu.KotlinLogging
 import org.jetbrains.exposed.dao.id.EntityID
@@ -28,11 +32,13 @@ private val cleanupMutex = Mutex()
 class EntriesProcessor(
     private val httpClient: HttpClient,
 ) {
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     /**
      * Checks all links in the database and flags removed (HTTP 404) entries.
      */
-    suspend fun checkAndFlagRemovedLinks() {
-        if (!cleanupMutex.tryLock()) return
+    suspend fun checkAndFlagRemovedLinks() = coroutineScope.launch {
+        if (!cleanupMutex.tryLock()) return@launch
         try {
             val linkTypes = listOf(EntryType.LINK, EntryType.IMAGE, EntryType.GIF, EntryType.VIDEO)
             val whereOp = (Entries.type inList linkTypes) and (Entries.flags hasNotFlag EntryFlag.DELETED_FROM_SERVER)
