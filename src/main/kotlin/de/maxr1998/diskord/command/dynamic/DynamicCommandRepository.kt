@@ -65,25 +65,31 @@ object DynamicCommandRepository {
     }
 
     suspend fun renameCommandByGuild(guild: String, command: String, target: String): Boolean = suspendingTransaction {
-        Commands.update(where = {
-            (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
-        }) { update ->
+        Commands.update(
+            where = {
+                (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
+            },
+        ) { update ->
             update[Commands.command] = target
         } > 0
     }
 
     suspend fun publishCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
-        Commands.update(where = {
-            (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
-        }) { update ->
+        Commands.update(
+            where = {
+                (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
+            },
+        ) { update ->
             update[Commands.guild] = GUILD_GLOBAL
         } > 0
     }
 
     suspend fun hideCommandByGuild(guild: String, command: String): Boolean = suspendingTransaction {
-        Commands.update(where = {
-            (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
-        }) { update ->
+        Commands.update(
+            where = {
+                (Commands.guild eq guild or Commands.isGlobal) and (Commands.command eq command)
+            },
+        ) { update ->
             update[hidden] = true
         } > 0
     }

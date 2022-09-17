@@ -58,7 +58,7 @@ class InstagramImageSource(
                 formParameters = Parameters.build {
                     append("sessionid", config.instagramSession)
                     append("pk", mediaId.toString())
-                }
+                },
             ) {
                 header(HttpHeaders.Accept, ContentType.Application.Json)
             }

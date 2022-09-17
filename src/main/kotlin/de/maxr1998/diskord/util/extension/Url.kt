@@ -7,7 +7,7 @@ import io.ktor.http.Url
 fun Url.cleanedCopy(
     host: String = this.host,
     encodedPath: String = this.encodedPath,
-    parameters: Parameters = Parameters.Empty
+    parameters: Parameters = Parameters.Empty,
 ) = copy(
     protocol = URLProtocol.HTTPS,
     host = host,

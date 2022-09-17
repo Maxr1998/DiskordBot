@@ -471,15 +471,18 @@ class Bot : KoinComponent {
 
                     when {
                         contentType.match(ContentType.Image.GIF) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.gif(url, message.getUrl(), width, height)
+                            minSize >= Constants.MIN_VIDEO_SIZE ->
+                                CommandEntryEntity.gif(url, message.getUrl(), width, height)
                             else -> null
                         }
                         contentType.match(ContentType.Image.Any) -> when {
-                            minSize >= Constants.MIN_IMAGE_SIZE -> CommandEntryEntity.image(url, message.getUrl(), width, height)
+                            minSize >= Constants.MIN_IMAGE_SIZE ->
+                                CommandEntryEntity.image(url, message.getUrl(), width, height)
                             else -> null
                         }
                         contentType.match(ContentType.Video.Any) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE -> CommandEntryEntity.video(url, message.getUrl(), width, height)
+                            minSize >= Constants.MIN_VIDEO_SIZE ->
+                                CommandEntryEntity.video(url, message.getUrl(), width, height)
                             else -> null
                         }
                         else -> null
@@ -489,9 +492,10 @@ class Bot : KoinComponent {
                 val diff = attachments.size - entries.size
                 if (diff > 0) {
                     message.respond(
-                        "$diff of ${attachments.size} attachments weren't added as they didn't fulfill the minimum resolution requirements:\n" +
+                        "$diff of ${attachments.size} attachments weren't added " +
+                            "as they didn't fulfill the minimum resolution requirements:\n" +
                             "\u2022 Images: ${Constants.MIN_IMAGE_SIZE}x${Constants.MIN_IMAGE_SIZE} pixels\n" +
-                            "\u2022 Videos: ${Constants.MIN_VIDEO_SIZE}x${Constants.MIN_VIDEO_SIZE} pixels"
+                            "\u2022 Videos: ${Constants.MIN_VIDEO_SIZE}x${Constants.MIN_VIDEO_SIZE} pixels",
                     )
 
                     // Abort if empty
