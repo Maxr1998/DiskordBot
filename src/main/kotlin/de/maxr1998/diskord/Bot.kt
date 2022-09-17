@@ -417,10 +417,12 @@ class Bot : KoinComponent {
                 val resolverResults = urls.mapNotNull { url ->
                     imageResolver.resolve(url, maySaveImages).takeUnless { result ->
                         result.isFailure && result.exceptionOrNull() == ImageResolver.Status.Unsupported
+                    }?.let { result ->
+                        url to result
                     }
                 }
                 if (resolverResults.isNotEmpty()) {
-                    for (result in resolverResults) {
+                    for ((url, result) in resolverResults) {
                         result.onSuccess { resolved ->
                             // Resolved images, add to database
                             if (DynamicCommandRepository.addCommandEntries(commandEntities, resolved.imageUrls)) {
@@ -438,9 +440,9 @@ class Bot : KoinComponent {
                             require(exception is ImageResolver.Status.Failure)
                             val errorText = when (exception) {
                                 ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
-                                ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
-                                ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
-                                ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
+                                ImageResolver.Status.RateLimited -> "Rate-limit exceeded for <$url>, please try again later."
+                                ImageResolver.Status.ParsingFailed -> "Parsing of <$url> failed, please contact the developer."
+                                ImageResolver.Status.Unknown -> "Couldn't process <$url>.\nPlease ensure your query is correct."
                             }
                             message.respond(errorText)
                         }
