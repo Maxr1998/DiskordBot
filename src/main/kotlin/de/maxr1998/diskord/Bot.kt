@@ -168,12 +168,10 @@ class Bot : KoinComponent {
             else -> null
         }
 
-        val status = when (type) {
-            null -> args.joinToString(" ")
-            else -> {
-                if (args.size < 2) return
-                args[1]
-            }
+        val status = when {
+            type == null -> args.joinToString(" ")
+            args.size < 2 -> return
+            else -> args[1]
         }
 
         val gateway = BotBase::class.java.getField("gateway").get(botBase) as AutoGateway
