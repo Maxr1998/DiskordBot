@@ -26,15 +26,6 @@ object Commands : IntIdTable("commands") {
         get() = guild eq GUILD_GLOBAL
 }
 
-object EntryType {
-    const val UNKNOWN = -1
-    const val TEXT = 0
-    const val LINK = 1
-    const val IMAGE = 2
-    const val GIF = 3
-    const val VIDEO = 4
-}
-
 object CommandEntries : Table("command_entries") {
     val command = reference("command", Commands, ReferenceOption.CASCADE, ReferenceOption.CASCADE).index()
     val entry = reference("entry", Entries, ReferenceOption.CASCADE, ReferenceOption.CASCADE).index()
