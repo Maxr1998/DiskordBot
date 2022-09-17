@@ -28,7 +28,6 @@ diskord = { module = "com.jessecorbett:diskord-bot", version.ref = "diskord" }
 ktor-client-java = { group = "io.ktor", name = "ktor-client-java", version.ref = "ktor" }
 ktor-client-serialization-jvm = { group = "io.ktor", name = "ktor-client-serialization-jvm", version.ref = "ktor" }
 ktor-client-json = { group = "io.ktor", name = "ktor-client-json", version.ref = "ktor" }
-ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
 exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
 sqlitejdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlitejdbc" }
@@ -42,7 +41,7 @@ kotest-property = { group = "io.kotest", name = "kotest-property", version.ref =
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 
 [bundles]
-ktor = ["ktor-client-java", "ktor-client-serialization-jvm", "ktor-client-json", "ktor-client-logging"]
+ktor = ["ktor-client-java", "ktor-client-serialization-jvm", "ktor-client-json"]
 exposed = ["exposed-core", "exposed-jdbc"]
 logging = ["kotlinLogging", "logback"]
 kotest = ["kotest-junitRunner", "kotest-property"]

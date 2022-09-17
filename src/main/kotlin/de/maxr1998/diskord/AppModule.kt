@@ -14,16 +14,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
 import io.ktor.client.features.BrowserUserAgent
 import io.ktor.client.features.json.serializer.KotlinxSerializer
-import io.ktor.client.features.logging.LogLevel
-import io.ktor.client.features.logging.Logging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import mu.KLoggable
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import java.io.File
 import io.ktor.client.features.json.Json as KtorJson
-import io.ktor.client.features.logging.Logger as KtorLogger
 
 val appModule = module {
     single {
@@ -37,23 +33,9 @@ val appModule = module {
         }
     }
 
-    single<KtorLogger> {
-        object : KtorLogger, KLoggable {
-            override val logger = logger("de.maxr1998.diskord.HttpClient")
-
-            override fun log(message: String) {
-                logger.info(message)
-            }
-        }
-    }
-
     single {
         HttpClient(Java) {
             BrowserUserAgent()
-            install(Logging) {
-                logger = get()
-                level = LogLevel.HEADERS
-            }
             KtorJson {
                 serializer = KotlinxSerializer(get())
             }
