@@ -37,14 +37,14 @@ class EntriesProcessor(
     /**
      * Checks all links in the database and flags removed (HTTP 404) entries.
      */
-    suspend fun checkAndFlagRemovedLinks() = coroutineScope.launch {
+    suspend fun checkAndFlagRemovedLinks(startOffset: Long) = coroutineScope.launch {
         if (!cleanupMutex.tryLock()) return@launch
         try {
             val linkTypes = listOf(EntryType.LINK, EntryType.IMAGE, EntryType.GIF, EntryType.VIDEO)
             val whereOp = (Entries.type inList linkTypes) and (Entries.flags hasNotFlag EntryFlag.DELETED_FROM_SERVER)
 
             val total = suspendingTransaction {
-                Entries.select { whereOp }.count()
+                Entries.select { (Entries.id greater startOffset) and whereOp }.count()
             }
 
             val batchCount = (total / BATCH_SIZE) + 1
@@ -52,6 +52,7 @@ class EntriesProcessor(
             Entries.slice(Entries.id, Entries.content).processBatches(
                 batchSize = BATCH_SIZE,
                 where = { whereOp },
+                startOffset = startOffset,
             ) { batch ->
                 logger.info("Processing batch ${batchNum++} of $batchCount")
                 handleBatch(batch)

@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.select
 suspend fun FieldSet.processBatches(
     batchSize: Int,
     where: SqlExpressionBuilder.() -> Op<Boolean>,
+    startOffset: Long = 0L,
     action: suspend (List<ResultRow>) -> Unit,
 ) {
     val autoIncColumn = try {
@@ -21,7 +22,7 @@ suspend fun FieldSet.processBatches(
         throw UnsupportedOperationException("Batch processing only works on tables with an autoincrementing column")
     }
 
-    var lastOffset = 0L
+    var lastOffset = startOffset
     while (true) {
         val batch = suspendingTransaction {
             select { (autoIncColumn greater lastOffset) and SqlExpressionBuilder.where() }

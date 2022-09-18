@@ -653,7 +653,8 @@ class Bot : KoinComponent {
             return
         }
 
-        entriesProcessor.checkAndFlagRemovedLinks()
+        val startOffset = message.args(1).firstOrNull()?.toLongOrNull() ?: 0L
+        entriesProcessor.checkAndFlagRemovedLinks(startOffset)
     }
 
     private suspend fun BotContext.resolve(message: Message) {
