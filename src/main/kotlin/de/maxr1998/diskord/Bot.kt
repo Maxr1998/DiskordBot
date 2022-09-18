@@ -150,12 +150,21 @@ class Bot : KoinComponent {
     private suspend fun BotContext.onReady() {
         val globalClient = global()
         botUser = globalClient.getUser()
-        val guilds = globalClient.getGuilds()
 
-        logger.debug("Bot has user id ${botUser.id} and is in ${guilds.size} server(s):")
-        guilds.forEach { guild ->
-            logger.debug("\u21b3 ${guild.name} [id=${guild.id}, perms=${guild.permissions.value}]")
+        logger.debug("Bot has user id ${botUser.id} and is in the following server(s):")
+        var numberOfGuilds = 0
+        var last = "0"
+        while (true) {
+            val guilds = globalClient.getGuilds(limit = 200, after = last)
+            if (guilds.isEmpty()) break
+
+            guilds.forEach { guild ->
+                logger.debug("\u21b3 ${guild.name} [id=${guild.id}, perms=${guild.permissions.value}]")
+            }
+            numberOfGuilds += guilds.size
+            last = guilds.last().id
         }
+        logger.debug("\u21d2 $numberOfGuilds server(s) total.")
     }
 
     private suspend fun BotContext.setStatus(botBase: BotBase, message: Message) {
