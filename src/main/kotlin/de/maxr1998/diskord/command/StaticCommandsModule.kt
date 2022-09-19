@@ -7,6 +7,7 @@ import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
+import java.nio.channels.UnresolvedAddressException
 
 private val logger = KotlinLogging.logger {}
 
@@ -73,6 +74,8 @@ internal class StaticCommandsModule(
                         logger.error("Timed out while handling $command", e)
                     } catch (e: DiscordException) {
                         logger.error("Handling command $command caused exception $e", e)
+                    } catch (e: UnresolvedAddressException) {
+                        logger.error("Failed to resolve address", e)
                     }
                 }
             }
