@@ -404,15 +404,19 @@ class Bot : KoinComponent {
 
         val args = message.args(limit = 2)
 
-        val commands = args.getOrNull(0)?.lowercase()?.split(',') ?: run {
+        val commandString = args.getOrNull(0)?.lowercase() ?: run {
             message.channel.showHelp(ADD)
             return
         }
 
-        val commandEntities = commands.map { command ->
-            DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
-                message.respond("Unknown auto-responder '$command', aborting…")
-                return
+        val commands = commandString.split(';').map { commandSet -> commandSet.split(',') }
+
+        val commandEntities = commands.map { commandSet ->
+            commandSet.map { command ->
+                DynamicCommandRepository.getCommandByGuild(guild, command) ?: run {
+                    message.respond("Unknown auto-responder '$command', aborting…")
+                    return
+                }
             }
         }
 
@@ -443,17 +447,37 @@ class Bot : KoinComponent {
                     }
                 }
                 if (resolverResults.isNotEmpty()) {
+                    if (commandEntities.size != 1 && resolverResults.size > 1) {
+                        message.respond("Command sets aren't supported when resolving more than one link")
+                        return
+                    }
                     for ((url, result) in resolverResults) {
                         result.onSuccess { resolved ->
                             // Resolved images, add to database
-                            if (DynamicCommandRepository.addCommandEntries(commandEntities, resolved.imageUrls)) {
-                                val commandsString = commands.joinToString { command -> "`$command`" }
-                                val imagesString = resolved.imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                val response = "Resolved ${resolved.imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString".take(Constants.MAX_MESSAGE_LENGTH)
-                                message.respond(response)
-                                for (command in commands) {
-                                    logger.logAdd(message.author, command, resolved.imageUrls)
+                            val imageUrls = resolved.imageUrls
+                            if (commandEntities.size != 1 && commandEntities.size != imageUrls.size) {
+                                message.respond("Number of command sets doesn't match entry count")
+                                return
+                            }
+                            if (DynamicCommandRepository.addCommandEntries(commandEntities, imageUrls)) {
+                                val response = when (commands.size) {
+                                    1 -> {
+                                        val commandsString = commands.first().joinToString { command -> "`$command`" }
+                                        val imagesString = imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
+                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString"
+                                    }
+                                    imageUrls.size -> {
+                                        val imagesString = imageUrls.indices.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES) { index ->
+                                            val imageUrl = imageUrls[index].content
+                                            val commandsString = commands[index].joinToString { command -> "`$command`" }
+                                            "$imageUrl → $commandsString"
+                                        }
+                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}> and added them to the respective commands:\n$imagesString"
+                                    }
+                                    else -> error("Mismatch in number of command sets and entries")
                                 }
+                                message.respond(response.take(Constants.MAX_MESSAGE_LENGTH))
+                                logger.logAdd(message.author, commands, imageUrls)
                             } else {
                                 message.respond("All content from `${resolved.url}` has already been added previously!")
                             }
@@ -529,12 +553,15 @@ class Bot : KoinComponent {
             }
         }
 
+        if (commandEntities.size != 1 && commandEntities.size != entries.size) {
+            message.respond("Number of command sets doesn't match entry count")
+            return
+        }
+
         // Add content to commands map
         if (DynamicCommandRepository.addCommandEntries(commandEntities, entries)) {
             message.react(config.getAckEmoji())
-            for (command in commands) {
-                logger.logAdd(message.author, command, entries)
-            }
+            logger.logAdd(message.author, commands, entries)
         } else {
             message.respond("Content was already added previously - updating with new data if necessary")
         }

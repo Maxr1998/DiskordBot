@@ -176,14 +176,30 @@ object DynamicCommandRepository {
      *
      * @return true if any changes were made
      */
-    suspend fun addCommandEntries(commandEntities: List<CommandEntity>, entries: List<CommandEntryEntity>): Boolean {
-        var acc = false
-        for (commandEntity in commandEntities) {
-            for (entry in entries) {
-                acc = addCommandEntry(commandEntity, entry) || acc
+    suspend fun addCommandEntries(
+        commandEntities: List<List<CommandEntity>>,
+        entries: List<CommandEntryEntity>,
+    ): Boolean = when (commandEntities.size) {
+        1 -> {
+            var acc = false
+            for (commandEntity in commandEntities.first()) {
+                for (entry in entries) {
+                    acc = addCommandEntry(commandEntity, entry) || acc
+                }
             }
+            acc
         }
-        return acc
+        entries.size -> {
+            var acc = false
+            commandEntities.forEachIndexed { index, commandSetEntities ->
+                val entry = entries[index]
+                for (commandEntity in commandSetEntities) {
+                    acc = addCommandEntry(commandEntity, entry) || acc
+                }
+            }
+            acc
+        }
+        else -> error("Mismatch in number of command sets and entries")
     }
 
     suspend fun removeCommandEntries(commandEntity: CommandEntity, entries: List<String>): Boolean {
