@@ -157,13 +157,14 @@ class Bot : KoinComponent {
         var numberOfGuilds = 0
         var last = "0"
         while (true) {
-            val guilds = globalClient.getGuilds(limit = 200, after = last)
+            val guilds = globalClient.getGuilds(limit = Constants.GUILDS_QUERY_LIMIT, after = last)
             if (guilds.isEmpty()) break
 
             guilds.forEach { guild ->
                 logger.debug("\u21b3 ${guild.name} [id=${guild.id}, perms=${guild.permissions.value}]")
             }
             numberOfGuilds += guilds.size
+            if (guilds.size < Constants.GUILDS_QUERY_LIMIT) break
             last = guilds.last().id
         }
         logger.debug("\u21d2 $numberOfGuilds server(s) total.")
