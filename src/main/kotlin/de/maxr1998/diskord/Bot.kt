@@ -69,6 +69,7 @@ import de.maxr1998.diskord.util.extension.parsedContentType
 import de.maxr1998.diskord.util.extension.toUrlOrNull
 import de.maxr1998.diskord.util.logAdd
 import de.maxr1998.diskord.util.logRemove
+import de.maxr1998.diskord.util.validateCommand
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import kotlinx.coroutines.delay
@@ -264,8 +265,8 @@ class Bot : KoinComponent {
                     return
                 }
 
-                if (command in BUILT_IN_COMMANDS) {
-                    message.respond("Cannot create auto-responder, '$command' is a reserved keyword")
+                if (command in BUILT_IN_COMMANDS || !validateCommand(command)) {
+                    message.respond("Cannot create auto-responder, '$command' is invalid or a reserved keyword")
                     return
                 }
 
