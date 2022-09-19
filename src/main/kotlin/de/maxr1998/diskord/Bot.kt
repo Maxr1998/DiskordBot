@@ -28,6 +28,7 @@ import de.maxr1998.diskord.command.AUTO_RESPONDER_MODE_RENAME
 import de.maxr1998.diskord.command.AUTO_RESPONDER_SHORT
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_GLOBAL
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_HIDDEN
+import de.maxr1998.diskord.command.BUILT_IN_COMMANDS
 import de.maxr1998.diskord.command.CHECK_ALL
 import de.maxr1998.diskord.command.HELP
 import de.maxr1998.diskord.command.HELP_ADMIN
@@ -260,6 +261,11 @@ class Bot : KoinComponent {
 
                 if (args.size != 2 /* <mode> <command> */ || command == null) {
                     message.channel.showHelp(HELP_ADMIN)
+                    return
+                }
+
+                if (command in BUILT_IN_COMMANDS) {
+                    message.respond("Cannot create auto-responder, '$command' is a reserved keyword")
                     return
                 }
 

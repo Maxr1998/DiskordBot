@@ -35,3 +35,20 @@ const val RESOLVE = "resolve"
 // Help
 const val HELP = "help"
 const val HELP_ADMIN = "admin"
+
+/**
+ * A set of all integrated commands defined above
+ */
+val BUILT_IN_COMMANDS = setOf(
+    STATUS,
+    PROMOTE_ADMIN, PROMOTE_ADMIN_SHORT,
+    PROMOTE, PROMOTE_SHORT,
+    AUTO_RESPONDER, AUTO_RESPONDER_SHORT,
+    ADD,
+    REMOVE, REMOVE_SHORT,
+    SOURCE,
+    SET_SOURCE,
+    CHECK_ALL,
+    RESOLVE,
+    HELP,
+)
