@@ -80,11 +80,13 @@ class InstagramImageSource(
 
         return when {
             imageUrls.isNotEmpty() -> {
-                logger.debug("Resolved ${imageUrls.size} images or videos from Instagram post")
-
+                logger.debug("Resolved ${imageUrls.size} images or videos from $normalizedUrl")
                 Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
             }
-            else -> ImageResolver.Status.Unknown()
+            else -> {
+                logger.warn("Instagram returned no results for $normalizedUrl")
+                ImageResolver.Status.Unknown()
+            }
         }
     }
 

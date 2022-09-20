@@ -36,10 +36,12 @@ class TwitterImageSource(
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val normalizedUrl = url.cleanedCopy(host = TWITTER_HOST)
+        val id = TWITTER_STATUS_PATH_REGEX.matchEntire(normalizedUrl.encodedPath)?.groupValues?.getOrNull(1)
 
-        val id = TWITTER_STATUS_PATH_REGEX.matchEntire(normalizedUrl.encodedPath)
-            ?.groupValues?.getOrNull(1)
-            ?: return ImageResolver.Status.Unknown()
+        if (id == null) {
+            logger.warn("Failed to extract tweet id from $normalizedUrl")
+            return ImageResolver.Status.Unknown()
+        }
 
         val tweetApiUrl = URLBuilder(
             protocol = URLProtocol.HTTPS,
@@ -56,12 +58,15 @@ class TwitterImageSource(
                 header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
             }
         } catch (e: SerializationException) {
+            logger.error("Failed to parse Twitter API response", e)
             return ImageResolver.Status.ParsingFailed()
         } catch (e: ClientRequestException) {
+            logger.error("Request to Twitter API failed", e)
             return ImageResolver.Status.Unknown()
         }
 
         if (tweet.includes == null) {
+            logger.warn("Twitter API returned no includes for $normalizedUrl")
             return ImageResolver.Status.Unknown()
         }
 
@@ -85,11 +90,13 @@ class TwitterImageSource(
 
         return when {
             imageUrls.isNotEmpty() -> {
-                logger.debug("Resolved ${imageUrls.size} images or videos from Twitter post")
-
+                logger.debug("Resolved ${imageUrls.size} images or videos from $normalizedUrl")
                 Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
             }
-            else -> ImageResolver.Status.Unknown()
+            else -> {
+                logger.warn("Twitter returned no results for $normalizedUrl")
+                ImageResolver.Status.Unknown()
+            }
         }
     }
 
