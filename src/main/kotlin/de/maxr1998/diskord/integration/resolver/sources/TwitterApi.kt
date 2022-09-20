@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 object TwitterApi {
     const val TWITTER_IMAGE_BASE_URL = "https://pbs.twimg.com/media/"
-    const val TWITTER_VIDEO_BASE_URL = "https://video.twimg.com/ext_tw_video/"
+    const val TWITTER_VIDEO_BASE_URL = "https://video.twimg.com/"
 
     @Serializable
     data class Tweet(
