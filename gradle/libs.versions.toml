@@ -13,7 +13,7 @@ exposed = "0.37.3"
 sqlitejdbc = "3.36.0.3"
 kotlinLogging = "2.1.21"
 logback = "1.2.11"
-kotest = "5.2.2"
+kotest = "5.5.4"
 jsoup = "1.14.3"
 
 [plugins]
