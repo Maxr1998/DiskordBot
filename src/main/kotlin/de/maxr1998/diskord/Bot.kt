@@ -13,7 +13,6 @@ import com.jessecorbett.diskord.api.gateway.model.ActivityType
 import com.jessecorbett.diskord.api.gateway.model.UserStatusActivity
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
-import com.jessecorbett.diskord.bot.bot
 import com.jessecorbett.diskord.util.sendEmbed
 import com.jessecorbett.diskord.util.sendMessage
 import de.maxr1998.diskord.Constants.COMMAND_PREFIX
@@ -30,6 +29,7 @@ import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_GLOBAL
 import de.maxr1998.diskord.command.AUTO_RESPONDER_TYPE_HIDDEN
 import de.maxr1998.diskord.command.BUILT_IN_COMMANDS
 import de.maxr1998.diskord.command.CHECK_ALL
+import de.maxr1998.diskord.command.CommandBuilder
 import de.maxr1998.diskord.command.HELP
 import de.maxr1998.diskord.command.HELP_ADMIN
 import de.maxr1998.diskord.command.HELP_TITLE
@@ -48,13 +48,8 @@ import de.maxr1998.diskord.command.buildEmbed
 import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.command.dynamic.DynamicCommandRepository
 import de.maxr1998.diskord.command.dynamic.DynamicCommandRepository.CommandType
-import de.maxr1998.diskord.command.dynamic.DynamicCommandsModule
-import de.maxr1998.diskord.command.staticCommands
-import de.maxr1998.diskord.config.Config
-import de.maxr1998.diskord.config.ConfigHelpers
 import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
-import de.maxr1998.diskord.util.DatabaseHelpers
 import de.maxr1998.diskord.util.EntriesProcessor
 import de.maxr1998.diskord.util.FileImporter
 import de.maxr1998.diskord.util.diskord.ExtractionResult
@@ -74,86 +69,48 @@ import de.maxr1998.diskord.util.logRemove
 import de.maxr1998.diskord.util.validateCommand
 import io.ktor.http.ContentType
 import io.ktor.http.Url
-import kotlinx.coroutines.delay
 import mu.KotlinLogging
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 import org.koin.core.component.inject
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("DuplicatedCode", "LargeClass", "TooManyFunctions")
-class Bot : KoinComponent {
-    private val configHelpers: ConfigHelpers = get()
-    private val databaseHelpers: DatabaseHelpers = get()
+@Suppress("DuplicatedCode", "TooManyFunctions")
+class Bot : BaseBot() {
     private val imageResolver: ImageResolver by inject()
     private val entriesProcessor: EntriesProcessor by inject()
     private val fileImporter: FileImporter by inject()
-    private val config: Config by configHelpers
     private lateinit var botUser: User
 
-    suspend fun run() {
-        logger.debug("Starting Diskord bot…")
+    override fun CommandBuilder.setupStaticCommands(botBase: BotBase) {
+        // Bot management commands
+        command(STATUS) { message -> setStatus(botBase, message) }
 
-        configHelpers.awaitConfig()
-        logger.debug("Successfully loaded config.")
+        // User management commands
+        command(PROMOTE_ADMIN) { message -> promoteAdmin(message) }
+        command(PROMOTE_ADMIN_SHORT) { message -> promoteAdmin(message) }
+        command(PROMOTE) { message -> promoteManager(message) }
+        command(PROMOTE_SHORT) { message -> promoteManager(message) }
 
-        databaseHelpers.setup()
-        logger.debug("Successfully connected to database.")
+        // AR management commands
+        command(AUTO_RESPONDER) { message -> autoResponder(message) }
+        command(AUTO_RESPONDER_SHORT) { message -> autoResponder(message) }
+        command(ADD) { message -> addEntry(message) }
+        command(REMOVE) { message -> removeEntry(message) }
+        command(REMOVE_SHORT) { message -> removeEntry(message) }
+        command(SOURCE) { message -> getSource(message) }
+        command(SET_SOURCE) { message -> setSource(message) }
+        command(CHECK_ALL) { message -> checkAll(message) }
+        command(IMPORT) { message -> import(message) }
 
-        databaseHelpers.createSchemas()
+        // Helper commands
+        command(RESOLVE) { message -> resolve(message) }
 
-        bot(config.botToken) {
-            registerModule { dispatcher, context ->
-                dispatcher.onReady {
-                    context.onReady()
-                }
-            }
-
-            staticCommands(commandPrefix = COMMAND_PREFIX) {
-                // Bot management commands
-                command(STATUS) { message -> setStatus(this@bot, message) }
-
-                // User management commands
-                command(PROMOTE_ADMIN) { message -> promoteAdmin(message) }
-                command(PROMOTE_ADMIN_SHORT) { message -> promoteAdmin(message) }
-                command(PROMOTE) { message -> promoteManager(message) }
-                command(PROMOTE_SHORT) { message -> promoteManager(message) }
-
-                // AR management commands
-                command(AUTO_RESPONDER) { message -> autoResponder(message) }
-                command(AUTO_RESPONDER_SHORT) { message -> autoResponder(message) }
-                command(ADD) { message -> addEntry(message) }
-                command(REMOVE) { message -> removeEntry(message) }
-                command(REMOVE_SHORT) { message -> removeEntry(message) }
-                command(SOURCE) { message -> getSource(message) }
-                command(SET_SOURCE) { message -> setSource(message) }
-                command(CHECK_ALL) { message -> checkAll(message) }
-                command(IMPORT) { message -> import(message) }
-
-                // Helper commands
-                command(RESOLVE) { message -> resolve(message) }
-
-                // Help
-                command(HELP) { message -> helpCommand(message) }
-            }
-
-            registerModule { dispatcher, context ->
-                dispatcher.onMessageReactionAdd { reaction ->
-                    context.onMessageReaction(reaction)
-                }
-            }
-
-            // Dynamic commands
-            registerModule(DynamicCommandsModule())
-        }
-
-        // Keep application alive
-        while (true) delay(@Suppress("MagicNumber") 100)
+        // Help
+        command(HELP) { message -> helpCommand(message) }
     }
 
-    private suspend fun BotContext.onReady() {
+    override suspend fun BotContext.onReady() {
         val globalClient = global()
         botUser = globalClient.getUser()
 
@@ -770,21 +727,21 @@ class Bot : KoinComponent {
     private suspend fun ChannelClient.sendNoDmWarning(command: String) =
         sendMessage("Command `$command` cannot be used in DMs.")
 
-    private suspend fun BotContext.onMessageReaction(messageReactionAdd: MessageReactionAdd) {
-        val channelClient = channel(messageReactionAdd.channelId)
+    override suspend fun BotContext.onMessageReaction(reaction: MessageReactionAdd) {
+        val channelClient = channel(reaction.channelId)
         val message = try {
-            channelClient.getMessage(messageReactionAdd.messageId)
+            channelClient.getMessage(reaction.messageId)
         } catch (e: DiscordNotFoundException) {
-            logger.error("Message ${messageReactionAdd.messageId} not found in ${messageReactionAdd.channelId}")
+            logger.error("Message ${reaction.messageId} not found in ${reaction.channelId}")
             return
         } catch (e: Exception) {
             logger.error(
                 "Encountered $e while retrieving message" +
-                    " ${messageReactionAdd.messageId} in ${messageReactionAdd.channelId}",
+                    " ${reaction.messageId} in ${reaction.channelId}",
             )
             return
         }
-        val emoji = messageReactionAdd.emoji
+        val emoji = reaction.emoji
 
         // Ignore reactions to messages not from the bot
         if (message.author.id != botUser.id) return
@@ -797,10 +754,10 @@ class Bot : KoinComponent {
                 channelClient.editMessage(message.id, MessageEdit(content = "Source: <$source>\n\n${entry.content}"))
             }
             "\u274C", "\u2716\uFE0F" -> { // ❌ ✖
-                val user = messageReactionAdd.getUser(this) ?: return
+                val user = reaction.getUser(this) ?: return
                 if (!isAdmin(config, user)) return
 
-                val guild = messageReactionAdd.guildId ?: return
+                val guild = reaction.guildId ?: return
                 val entry = DynamicCommandRepository.getCommandEntry(message.content) ?: return
 
                 if (DynamicCommandRepository.removeEntryForGuild(entry.content, guild)) {
