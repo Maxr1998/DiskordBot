@@ -5,7 +5,7 @@ shadow = "7.1.2"
 dependencyUpdates = "0.44.0"
 
 # Libraries
-koin = "3.1.6"
+koin = "3.3.0"
 coroutines = { strictly = "1.6.4" }
 diskord = "2.1.4"
 ktor = "1.6.8"
