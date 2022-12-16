@@ -39,7 +39,10 @@ object DynamicCommandRepository {
         }
     }
 
-    suspend fun getCommandsByGuild(guild: String, type: CommandType): List<Triple<String, Boolean, Long>> = suspendingTransaction {
+    suspend fun getCommandsByGuild(
+        guild: String,
+        type: CommandType,
+    ): List<Triple<String, Boolean, Long>> = suspendingTransaction {
         val countAlias = Count(CommandEntries.entry)
         Commands.leftJoin(CommandEntries)
             .slice(Commands.id, Commands.isGlobal, Commands.command, countAlias)
@@ -104,7 +107,10 @@ object DynamicCommandRepository {
         removedAny
     }
 
-    suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
+    suspend fun addCommandEntry(
+        commandEntity: CommandEntity,
+        commandEntryEntity: CommandEntryEntity,
+    ): Boolean = suspendingTransaction {
         val id = updateExistingEntryInternal(commandEntryEntity)
             ?: Entries.insertIgnoreAndGetId { insert ->
                 insert[content] = commandEntryEntity.content
@@ -148,10 +154,10 @@ object DynamicCommandRepository {
         updatedAny
     }
 
-    private suspend fun removeCommandEntry(commandEntity: CommandEntity, entry: String): Boolean = suspendingTransaction {
+    private suspend fun removeCommandEntry(command: CommandEntity, entry: String): Boolean = suspendingTransaction {
         val id = getEntryByContentInternal(entry)?.get(Entries.id) ?: return@suspendingTransaction false
         val removedAny = CommandEntries.deleteWhere {
-            (CommandEntries.command eq commandEntity.id) and (CommandEntries.entry eq id)
+            (CommandEntries.command eq command.id) and (CommandEntries.entry eq id)
         } > 0
         if (removedAny) {
             cleanEntriesInternal()
@@ -210,14 +216,17 @@ object DynamicCommandRepository {
 
     suspend fun getRandomEntry(commandEntity: CommandEntity): String? = suspendingTransaction {
         val count = CommandEntries.select { CommandEntries.command eq commandEntity.id }.count()
-        if (count > 0L) {
-            val offset = random.nextLong(count)
-            CommandEntries.innerJoin(Entries)
-                .select { CommandEntries.command eq commandEntity.id }
-                .limit(1, offset)
-                .singleOrNull()
-                ?.get(Entries.content)
-        } else null
+        when {
+            count > 0L -> {
+                val offset = random.nextLong(count)
+                CommandEntries.innerJoin(Entries)
+                    .select { CommandEntries.command eq commandEntity.id }
+                    .limit(1, offset)
+                    .singleOrNull()
+                    ?.get(Entries.content)
+            }
+            else -> null
+        }
     }
 
     private fun getEntryByContentInternal(content: String): ResultRow? {
@@ -228,20 +237,28 @@ object DynamicCommandRepository {
         val existing = getEntryByContentInternal(commandEntryEntity.content) ?: return null
 
         val updates = mutableListOf<Entries.(UpdateStatement) -> Unit>()
-        if (commandEntryEntity.contentSource != null) updates.add { update ->
-            update[contentSource] = commandEntryEntity.contentSource
+        if (commandEntryEntity.contentSource != null) {
+            updates.add { update ->
+                update[contentSource] = commandEntryEntity.contentSource
+            }
         }
-        if (existing[Entries.type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) updates.add { update ->
-            update[type] = commandEntryEntity.type
+        if (existing[Entries.type] == EntryType.UNKNOWN || commandEntryEntity.type > EntryType.LINK) {
+            updates.add { update ->
+                update[type] = commandEntryEntity.type
+            }
         }
-        if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) updates.add { update ->
-            update[width] = commandEntryEntity.width
-            update[height] = commandEntryEntity.height
+        if (commandEntryEntity.width > 0 && commandEntryEntity.height > 0) {
+            updates.add { update ->
+                update[width] = commandEntryEntity.width
+                update[height] = commandEntryEntity.height
+            }
         }
 
         val id = existing[Entries.id]
-        if (updates.isNotEmpty()) Entries.update(where = { Entries.id eq id }) { update ->
-            updates.forEach { action -> action(update) }
+        if (updates.isNotEmpty()) {
+            Entries.update(where = { Entries.id eq id }) { update ->
+                updates.forEach { action -> action(update) }
+            }
         }
 
         return id

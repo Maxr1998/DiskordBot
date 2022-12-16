@@ -1,4 +1,4 @@
-package de.maxr1998.diskord.util.http
+package de.maxr1998.diskord.util.extension
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.receive
@@ -32,7 +32,9 @@ suspend fun HttpClient.loadJsoupDocument(url: Url): Document? = getHtml(url).exe
                 Jsoup.parse(stream, null, url.toString())
             }
         }
-    } else null
+    } else {
+        null
+    }
 }
 
 suspend fun HttpClient.downloadFile(url: String, out: File): Boolean {

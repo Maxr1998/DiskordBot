@@ -4,7 +4,7 @@ import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
 import de.maxr1998.diskord.util.extension.cleanedCopy
-import de.maxr1998.diskord.util.http.loadJsoupDocument
+import de.maxr1998.diskord.util.extension.loadJsoupDocument
 import io.ktor.client.HttpClient
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException

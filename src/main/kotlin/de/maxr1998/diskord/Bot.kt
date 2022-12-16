@@ -83,7 +83,7 @@ import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
-@Suppress("DuplicatedCode", "TooManyFunctions")
+@Suppress("DuplicatedCode", "LargeClass", "TooManyFunctions")
 class Bot : KoinComponent {
     private val configHelpers: ConfigHelpers = get()
     private val databaseHelpers: DatabaseHelpers = get()
@@ -317,7 +317,9 @@ class Bot : KoinComponent {
                     return
                 }
 
-                if (args.size != 1 /* <mode> */ && (args.size != 2 /* <mode> global/hidden */ || type == CommandType.ALL_VISIBLE)) {
+                // <mode>
+                // <mode> global/hidden
+                if (args.size != 1 && (args.size != 2 || type == CommandType.ALL_VISIBLE)) {
                     message.channel.showHelp(HELP_ADMIN)
                     return
                 }
@@ -467,16 +469,29 @@ class Bot : KoinComponent {
                                 val response = when (commands.size) {
                                     1 -> {
                                         val commandsString = commands.first().joinToString { command -> "`$command`" }
-                                        val imagesString = imageUrls.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES, transform = CommandEntryEntity::content)
-                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}> and added them to $commandsString\n$imagesString"
+                                        val imagesString = imageUrls.joinToString(
+                                            prefix = "\n",
+                                            separator = "\n",
+                                            limit = Constants.MAX_PREVIEW_IMAGES,
+                                            transform = CommandEntryEntity::content,
+                                        )
+                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}>" +
+                                            " and added them to $commandsString\n$imagesString"
                                     }
                                     imageUrls.size -> {
-                                        val imagesString = imageUrls.indices.joinToString(prefix = "\n", separator = "\n", limit = Constants.MAX_PREVIEW_IMAGES) { index ->
+                                        val imagesString = imageUrls.indices.joinToString(
+                                            prefix = "\n",
+                                            separator = "\n",
+                                            limit = Constants.MAX_PREVIEW_IMAGES,
+                                        ) { index ->
                                             val imageUrl = imageUrls[index].content
-                                            val commandsString = commands[index].joinToString { command -> "`$command`" }
+                                            val commandsString = commands[index].joinToString { command ->
+                                                "`$command`"
+                                            }
                                             "$imageUrl → $commandsString"
                                         }
-                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}> and added them to the respective commands:\n$imagesString"
+                                        "Resolved ${imageUrls.size} image(s) from <${resolved.url}>" +
+                                            " and added them to the respective commands:\n$imagesString"
                                     }
                                     else -> error("Mismatch in number of command sets and entries")
                                 }
@@ -488,10 +503,14 @@ class Bot : KoinComponent {
                         }.onFailure { exception ->
                             require(exception is ImageResolver.Status.Failure)
                             val errorText = when (exception) {
-                                ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
-                                ImageResolver.Status.RateLimited -> "Rate-limit exceeded for <$url>, please try again later."
-                                ImageResolver.Status.ParsingFailed -> "Parsing of <$url> failed, please contact the developer."
-                                ImageResolver.Status.Unknown -> "Couldn't process <$url>.\nPlease ensure your query is correct."
+                                ImageResolver.Status.Forbidden ->
+                                    "Insufficient permissions to use this feature."
+                                ImageResolver.Status.RateLimited ->
+                                    "Rate-limit exceeded for <$url>, please try again later."
+                                ImageResolver.Status.ParsingFailed ->
+                                    "Parsing of <$url> failed, please contact the developer."
+                                ImageResolver.Status.Unknown ->
+                                    "Couldn't process <$url>.\nPlease ensure your query is correct."
                             }
                             message.respond(errorText)
                         }
@@ -759,7 +778,10 @@ class Bot : KoinComponent {
             logger.error("Message ${messageReactionAdd.messageId} not found in ${messageReactionAdd.channelId}")
             return
         } catch (e: Exception) {
-            logger.error("Encountered $e while retrieving message ${messageReactionAdd.messageId} in ${messageReactionAdd.channelId}")
+            logger.error(
+                "Encountered $e while retrieving message" +
+                    " ${messageReactionAdd.messageId} in ${messageReactionAdd.channelId}",
+            )
             return
         }
         val emoji = messageReactionAdd.emoji
