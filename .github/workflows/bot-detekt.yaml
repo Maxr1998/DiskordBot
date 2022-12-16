@@ -6,20 +6,21 @@ on:
 
 jobs:
   detekt:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b # v3.2.0
       - name: Setup Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@c3ac5dd0ed8db40fedb61c32fbe677e6b355e94c # v3.8.0
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef # tag=v2.3.3
       - name: Run detekt task
-        run: ./gradlew --build-cache --no-daemon --info detekt
+        run: ./gradlew detekt
       - name: Upload SARIF files
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@b2a92eb56d8cb930006a1c6ed86b0782dd8a4297 # v2.1.35
         if: ${{ always() }}
         with:
           sarif_file: .
