@@ -33,6 +33,7 @@ import de.maxr1998.diskord.command.CHECK_ALL
 import de.maxr1998.diskord.command.HELP
 import de.maxr1998.diskord.command.HELP_ADMIN
 import de.maxr1998.diskord.command.HELP_TITLE
+import de.maxr1998.diskord.command.IMPORT
 import de.maxr1998.diskord.command.PROMOTE
 import de.maxr1998.diskord.command.PROMOTE_ADMIN
 import de.maxr1998.diskord.command.PROMOTE_ADMIN_SHORT
@@ -55,6 +56,7 @@ import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.util.DatabaseHelpers
 import de.maxr1998.diskord.util.EntriesProcessor
+import de.maxr1998.diskord.util.FileImporter
 import de.maxr1998.diskord.util.diskord.ExtractionResult
 import de.maxr1998.diskord.util.diskord.extractEntries
 import de.maxr1998.diskord.util.diskord.isAdmin
@@ -87,6 +89,7 @@ class Bot : KoinComponent {
     private val databaseHelpers: DatabaseHelpers = get()
     private val imageResolver: ImageResolver by inject()
     private val entriesProcessor: EntriesProcessor by inject()
+    private val fileImporter: FileImporter by inject()
     private val config: Config by configHelpers
     private lateinit var botUser: User
 
@@ -127,6 +130,7 @@ class Bot : KoinComponent {
                 command(SOURCE) { message -> getSource(message) }
                 command(SET_SOURCE) { message -> setSource(message) }
                 command(CHECK_ALL) { message -> checkAll(message) }
+                command(IMPORT) { message -> import(message) }
 
                 // Helper commands
                 command(RESOLVE) { message -> resolve(message) }
@@ -690,6 +694,15 @@ class Bot : KoinComponent {
 
         val startOffset = message.args(1).firstOrNull()?.toLongOrNull() ?: 0L
         entriesProcessor.checkAndFlagRemovedLinks(startOffset)
+    }
+
+    private suspend fun BotContext.import(message: Message) {
+        if (!isOwner(config, message)) {
+            message.reply("Only the owner can request to import entries")
+            return
+        }
+
+        fileImporter.startImport()
     }
 
     private suspend fun BotContext.resolve(message: Message) {

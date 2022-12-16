@@ -28,6 +28,7 @@ const val REMOVE_SHORT = "rm"
 const val SOURCE = "source"
 const val SET_SOURCE = "setsource"
 const val CHECK_ALL = "checkall"
+const val IMPORT = "import"
 
 // Helper commands
 const val RESOLVE = "resolve"

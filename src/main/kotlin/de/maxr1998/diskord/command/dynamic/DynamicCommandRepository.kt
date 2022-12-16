@@ -104,7 +104,7 @@ object DynamicCommandRepository {
         removedAny
     }
 
-    private suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
+    suspend fun addCommandEntry(commandEntity: CommandEntity, commandEntryEntity: CommandEntryEntity): Boolean = suspendingTransaction {
         val id = updateExistingEntryInternal(commandEntryEntity)
             ?: Entries.insertIgnoreAndGetId { insert ->
                 insert[content] = commandEntryEntity.content

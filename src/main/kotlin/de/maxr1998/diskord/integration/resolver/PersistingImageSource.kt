@@ -1,5 +1,6 @@
 package de.maxr1998.diskord.integration.resolver
 
+import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
@@ -19,7 +20,7 @@ abstract class PersistingImageSource(
 
     protected val config: Config by configHelpers
 
-    private val downloadPath = File("files").apply(File::mkdir)
+    private val downloadPath = File(Constants.FILES_PATH).apply(File::mkdir)
 
     /**
      * Download images from [urls] and return a list of [image entities][CommandEntryEntity] on success,
