@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-detekt = "1.19.0"
+detekt = "1.22.0"
 shadow = "7.1.2"
 dependencyUpdates = "0.42.0"
 
