@@ -8,7 +8,7 @@ dependencyUpdates = "0.44.0"
 koin = "3.1.6"
 coroutines = { strictly = "1.6.0" }
 diskord = "2.1.4"
-ktor = "1.6.8"
+ktor = "2.2.1"
 exposed = "0.37.3"
 sqlitejdbc = "3.36.0.3"
 kotlinLogging = "2.1.23"
