@@ -3,7 +3,7 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = false
-ij_visual_guides = 120, 180
+ij_visual_guides = 120
 
 [*.bat]
 end_of_line = crlf

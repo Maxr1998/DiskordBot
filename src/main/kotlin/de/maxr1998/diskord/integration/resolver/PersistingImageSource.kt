@@ -4,7 +4,7 @@ import de.maxr1998.diskord.Constants
 import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.config.Config
 import de.maxr1998.diskord.config.ConfigHelpers
-import de.maxr1998.diskord.util.http.downloadFile
+import de.maxr1998.diskord.util.extension.downloadFile
 import io.ktor.client.HttpClient
 import io.ktor.http.Url
 import kotlinx.coroutines.Deferred
@@ -41,11 +41,13 @@ abstract class PersistingImageSource(
 
         val downloadJobs = ArrayList<Deferred<String?>>()
         urls.forEachIndexed { index, url ->
-            if (url != null) downloadJobs += async {
-                val path = "$prefix-$index.jpg"
-                when {
-                    httpClient.downloadFile(url, File(downloadPath, path)) -> "$baseUrl/$path"
-                    else -> null
+            if (url != null) {
+                downloadJobs += async {
+                    val path = "$prefix-$index.jpg"
+                    when {
+                        httpClient.downloadFile(url, File(downloadPath, path)) -> "$baseUrl/$path"
+                        else -> null
+                    }
                 }
             }
         }
