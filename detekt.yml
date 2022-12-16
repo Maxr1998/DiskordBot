@@ -20,7 +20,7 @@ formatting:
   FinalNewline:
     insertFinalNewLine: false
   MaximumLineLength:
-    maxLineLength: 200
+    active: false # active in style rules
 
 naming:
   PackageNaming:
@@ -31,7 +31,7 @@ style:
   LoopWithTooManyJumpStatements:
     active: false
   MaxLineLength:
-    maxLineLength: 200
+    maxLineLength: 120
   NewLineAtEndOfFile:
     active: false
   ReturnCount:
