@@ -6,7 +6,7 @@ dependencyUpdates = "0.44.0"
 
 # Libraries
 koin = "3.1.6"
-coroutines = { strictly = "1.6.0" }
+coroutines = { strictly = "1.6.4" }
 diskord = "2.1.4"
 ktor = "1.6.8"
 exposed = "0.37.3"
