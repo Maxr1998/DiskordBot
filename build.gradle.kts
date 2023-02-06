@@ -17,8 +17,8 @@ allprojects {
 
 plugins {
     application
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.shadow)
     alias(libs.plugins.dependencyUpdates)

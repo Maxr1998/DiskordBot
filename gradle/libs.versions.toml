@@ -1,5 +1,6 @@
 [versions]
 # Plugins
+kotlin = "1.8.10"
 detekt = "1.22.0"
 shadow = "7.1.2"
 dependencyUpdates = "0.45.0"
@@ -17,6 +18,8 @@ kotest = "5.5.5"
 jsoup = "1.14.3"
 
 [plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
 dependencyUpdates = { id = "com.github.ben-manes.versions", version.ref = "dependencyUpdates" }
