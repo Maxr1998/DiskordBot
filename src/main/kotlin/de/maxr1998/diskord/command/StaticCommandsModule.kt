@@ -5,6 +5,7 @@ import com.jessecorbett.diskord.api.exceptions.DiscordException
 import com.jessecorbett.diskord.api.gateway.EventDispatcher
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
+import io.ktor.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 import java.nio.channels.UnresolvedAddressException
@@ -74,6 +75,8 @@ internal class StaticCommandsModule(
                         logger.error("Timed out while handling $command", e)
                     } catch (e: DiscordException) {
                         logger.error("Handling command $command caused exception $e", e)
+                    } catch (e: ConnectTimeoutException) {
+                        logger.error("Connection timed out while handling $command", e)
                     } catch (e: UnresolvedAddressException) {
                         logger.error("Failed to resolve address", e)
                     }
