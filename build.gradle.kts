@@ -1,5 +1,3 @@
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
-import com.github.benmanes.gradle.versions.updates.gradle.GradleReleaseChannel
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -21,7 +19,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.detekt)
     alias(libs.plugins.shadow)
-    alias(libs.plugins.dependencyUpdates)
 }
 
 val applicationName = "diskord-bot"
@@ -89,32 +86,5 @@ tasks {
 
     withType<Test> {
         useJUnitPlatform()
-    }
-
-    // Configure dependency updates task
-    withType<DependencyUpdatesTask> {
-        gradleReleaseChannel = GradleReleaseChannel.CURRENT.id
-
-        doFirst {
-            project.repositories.removeAll { repo ->
-                repo is MavenArtifactRepository && repo.url.toString() == SONATYPE_SNAPSHOTS_REPO
-            }
-        }
-
-        rejectVersionIf {
-            val candidateType = classifyVersion(candidate.version)
-            val currentType = classifyVersion(currentVersion)
-
-            val accept = when (candidateType) {
-                // Always accept stable updates
-                VersionType.STABLE -> true
-                // Accept milestone updates for current milestone and unstable
-                VersionType.MILESTONE -> currentType != VersionType.STABLE
-                // Only accept unstable for current unstable
-                VersionType.UNSTABLE -> currentType == VersionType.UNSTABLE
-            }
-
-            !accept
-        }
     }
 }

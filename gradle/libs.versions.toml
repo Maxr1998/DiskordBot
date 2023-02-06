@@ -3,7 +3,6 @@
 kotlin = "1.8.10"
 detekt = "1.22.0"
 shadow = "7.1.2"
-dependencyUpdates = "0.45.0"
 
 # Libraries
 koin = "3.3.0"
@@ -22,7 +21,6 @@ kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
-dependencyUpdates = { id = "com.github.ben-manes.versions", version.ref = "dependencyUpdates" }
 
 [libraries]
 koin = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
