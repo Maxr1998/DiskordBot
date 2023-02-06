@@ -5,7 +5,7 @@ import com.jessecorbett.diskord.api.exceptions.DiscordException
 import com.jessecorbett.diskord.api.gateway.EventDispatcher
 import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
-import io.ktor.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 import java.nio.channels.UnresolvedAddressException
@@ -58,7 +58,7 @@ internal class StaticCommandsModule(
     private val guildPrefix: GuildPrefix,
     private val handlers: Map<String, CommandHandler>,
 ) : BotBase.BotModule {
-    override fun register(dispatcher: EventDispatcher<Unit>, context: BotContext) {
+    override suspend fun register(dispatcher: EventDispatcher<Unit>, context: BotContext, configuring: Boolean) {
         dispatcher.onMessageCreate { message ->
             val prefix = guildPrefix.getPrefix(message.guildId)
 

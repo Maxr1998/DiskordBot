@@ -7,13 +7,13 @@ import de.maxr1998.diskord.integration.UrlNormalizer
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
 import de.maxr1998.diskord.util.extension.cleanedCopy
+import de.maxr1998.diskord.util.extension.removeParameters
 import io.ktor.client.HttpClient
-import io.ktor.client.features.ClientRequestException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
 import io.ktor.http.ParametersBuilder
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
@@ -46,17 +46,17 @@ class TwitterImageSource(
         val tweetApiUrl = URLBuilder(
             protocol = URLProtocol.HTTPS,
             host = TWITTER_API_HOST,
-            encodedPath = TWITTER_API_TWEET_PATH + id,
+            pathSegments = listOf("2", "tweets", id),
             parameters = ParametersBuilder().apply {
                 append("expansions", "attachments.media_keys")
                 append("media.fields", "type,url,width,height")
-            },
+            }.build(),
         ).build()
 
         val tweet = try {
-            httpClient.get<TwitterApi.Tweet>(tweetApiUrl) {
+            httpClient.get(tweetApiUrl) {
                 header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
-            }
+            }.body<TwitterApi.Tweet>()
         } catch (e: SerializationException) {
             logger.error("Failed to parse Twitter API response", e)
             return ImageResolver.Status.ParsingFailed()
@@ -104,16 +104,14 @@ class TwitterImageSource(
      * Try to resolve a static video url from a Twitter post with fxtwitter.com
      */
     private suspend fun resolveVideo(twitterUrl: Url): CommandEntryEntity? {
-        val fixedUrl = twitterUrl.copy(host = FXTWITTER_HOST)
+        val fixedUrl = URLBuilder(twitterUrl).apply {
+            host = FXTWITTER_HOST
+        }.build()
 
-        val response = httpClient.get<HttpResponse>(fixedUrl)
+        val response = httpClient.get(fixedUrl)
 
         // Normalize redirected url
-        val redirectUrl = response.call.request.url.copy(
-            parameters = Parameters.Empty,
-            fragment = "",
-            trailingQuery = false,
-        ).toString()
+        val redirectUrl = response.call.request.url.removeParameters().toString()
 
         return when {
             redirectUrl.startsWith(TwitterApi.TWITTER_VIDEO_BASE_URL) -> {
@@ -127,7 +125,6 @@ class TwitterImageSource(
         private const val TWITTER_HOST = "twitter.com"
         private const val TWITTER_API_HOST = "api.twitter.com"
         private const val FXTWITTER_HOST = "d.fxtwitter.com"
-        private const val TWITTER_API_TWEET_PATH = "/2/tweets/"
         private val TWITTER_HOST_REGEX = Regex("""(?:(?:www|mobile)\.)?twitter\.com""")
         private val TWITTER_STATUS_PATH_REGEX = Regex("""/[A-Za-z_\d]+/status/([\d]+)""")
     }

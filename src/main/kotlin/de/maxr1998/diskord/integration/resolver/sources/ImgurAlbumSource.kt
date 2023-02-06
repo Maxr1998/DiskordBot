@@ -7,7 +7,8 @@ import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
 import de.maxr1998.diskord.util.extension.cleanedCopy
 import io.ktor.client.HttpClient
-import io.ktor.client.features.ClientRequestException
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
@@ -31,10 +32,10 @@ class ImgurAlbumSource(
         val normalizedUrl = url.cleanedCopy(host = IMGUR_HOST)
 
         val albumId = normalizedUrl.encodedPath.removePrefix("/a/")
-        val response = try {
-            httpClient.get<ImgurApi.Response<ImgurApi.Image>>(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
+        val response: ImgurApi.Response<ImgurApi.Image> = try {
+            httpClient.get(IMGUR_API_ALBUM_IMAGES_PATH.format(albumId)) {
                 header(HttpHeaders.Authorization, "Client-ID ${config.imgurClientId}")
-            }
+            }.body()
         } catch (e: ClientRequestException) {
             return ImageResolver.Status.Unsupported()
         } catch (e: SerializationException) {

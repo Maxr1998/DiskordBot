@@ -7,7 +7,7 @@ import com.jessecorbett.diskord.bot.BotBase
 import com.jessecorbett.diskord.bot.BotContext
 import com.jessecorbett.diskord.util.isFromBot
 import de.maxr1998.diskord.Constants
-import io.ktor.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 import java.nio.channels.UnresolvedAddressException
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
  */
 class DynamicCommandsModule : BotBase.BotModule {
 
-    override fun register(dispatcher: EventDispatcher<Unit>, context: BotContext) {
+    override suspend fun register(dispatcher: EventDispatcher<Unit>, context: BotContext, configuring: Boolean) {
         dispatcher.onMessageCreate { message ->
             context.handleMessage(message)
         }

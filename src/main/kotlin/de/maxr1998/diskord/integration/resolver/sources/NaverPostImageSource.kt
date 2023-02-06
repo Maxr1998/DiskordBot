@@ -5,6 +5,7 @@ import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
 import de.maxr1998.diskord.util.extension.cleanedCopy
 import de.maxr1998.diskord.util.extension.loadJsoupDocument
+import de.maxr1998.diskord.util.extension.removeParameters
 import io.ktor.client.HttpClient
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
@@ -46,7 +47,7 @@ class NaverPostImageSource(
             }
 
             val imageUrl = try {
-                Url(imageSrc).copy(parameters = Parameters.Empty, trailingQuery = false)
+                Url(imageSrc).removeParameters()
             } catch (e: URLParserException) {
                 logger.error("Could not parse URL $imageSrc", e)
                 return@mapNotNull null

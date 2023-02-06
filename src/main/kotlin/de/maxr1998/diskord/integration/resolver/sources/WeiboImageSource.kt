@@ -3,15 +3,15 @@ package de.maxr1998.diskord.integration.resolver.sources
 import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
-import de.maxr1998.diskord.util.extension.cleanedCopy
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
+import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -31,18 +31,18 @@ class WeiboImageSource(
         url.host == WEIBO_HOST && url.encodedPath.matches(WEIBO_STATUS_PATH_REGEX)
 
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
-        val normalizedUrl = url.cleanedCopy(
-            encodedPath = url.encodedPath.replace("detail", "status").removeSuffix("/"),
-        )
+        val normalizedUrl = URLBuilder(url).apply {
+            encodedPath = encodedPath.replace("detail", "status").removeSuffix("/")
+        }.build()
 
         // Request and parse post metadata to extract image urls from Weibo
         val imageUrls = try {
-            val response = httpClient.get<HttpResponse>(normalizedUrl) {
+            val response = httpClient.get(normalizedUrl) {
                 header(HttpHeaders.Accept, ContentType.Text.Html)
             }
             if (!response.status.isSuccess()) return ImageResolver.Status.Unknown()
 
-            val body = response.receive<String>()
+            val body = response.bodyAsText()
             val startIndex = body.indexOf(RENDER_DATA_START_MARKER) + RENDER_DATA_START_MARKER.length
             if (startIndex < 0) return ImageResolver.Status.ParsingFailed()
             val endIndex = body.indexOf(RENDER_DATA_END_MARKER, startIndex = startIndex)

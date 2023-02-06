@@ -34,7 +34,7 @@ abstract class BaseBot : KoinComponent {
         databaseHelpers.createSchemas()
 
         bot(config.botToken) {
-            registerModule { dispatcher, context ->
+            registerModule { dispatcher, context, configuring ->
                 dispatcher.onReady {
                     context.onReady()
                 }
@@ -44,7 +44,7 @@ abstract class BaseBot : KoinComponent {
                 setupStaticCommands(this@bot)
             }
 
-            registerModule { dispatcher, context ->
+            registerModule { dispatcher, context, configuring ->
                 dispatcher.onMessageReactionAdd { reaction ->
                     context.onMessageReaction(reaction)
                 }

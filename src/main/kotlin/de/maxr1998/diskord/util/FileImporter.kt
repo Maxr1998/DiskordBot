@@ -97,7 +97,7 @@ class FileImporter(
             val source = URLBuilder(
                 protocol = URLProtocol.HTTPS,
                 host = InstagramImageSource.INSTAGRAM_HOST,
-                encodedPath = "/p/$postId/",
+                pathSegments = listOf("p", postId),
             ).build()
 
             val commandEntry = CommandEntryEntity.image(url, source)

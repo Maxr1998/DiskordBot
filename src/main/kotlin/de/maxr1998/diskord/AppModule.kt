@@ -14,14 +14,14 @@ import de.maxr1998.diskord.util.EntriesProcessor
 import de.maxr1998.diskord.util.FileImporter
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
-import io.ktor.client.features.BrowserUserAgent
-import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.plugins.BrowserUserAgent
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import java.io.File
-import io.ktor.client.features.json.Json as KtorJson
 
 val appModule = module {
     single {
@@ -38,8 +38,8 @@ val appModule = module {
     single {
         HttpClient(Java) {
             BrowserUserAgent()
-            KtorJson {
-                serializer = KotlinxSerializer(get())
+            install(ContentNegotiation) {
+                json(get())
             }
         }
     }

@@ -80,7 +80,6 @@ class Bot : BaseBot() {
     private val imageResolver: ImageResolver by inject()
     private val entriesProcessor: EntriesProcessor by inject()
     private val fileImporter: FileImporter by inject()
-    private lateinit var botUser: User
 
     override fun CommandBuilder.setupStaticCommands(botBase: BotBase) {
         // Bot management commands
@@ -112,7 +111,6 @@ class Bot : BaseBot() {
 
     override suspend fun BotContext.onReady() {
         val globalClient = global()
-        botUser = globalClient.getUser()
 
         logger.debug("Bot has user id ${botUser.id} and is in the following server(s):")
         var numberOfGuilds = 0

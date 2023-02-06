@@ -1,17 +1,16 @@
 package de.maxr1998.diskord.util.extension
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.HttpStatement
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.util.cio.writeChannel
-import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.Dispatchers
@@ -20,13 +19,13 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.io.File
 
-suspend fun HttpClient.getHtml(url: Url): HttpStatement = get(url) {
+suspend fun HttpClient.getHtml(url: Url): HttpStatement = prepareGet(url) {
     accept(ContentType.Text.Html)
 }
 
 suspend fun HttpClient.loadJsoupDocument(url: Url): Document? = getHtml(url).execute { response ->
     if (response.status.isSuccess() && response.contentType()?.withoutParameters() == ContentType.Text.Html) {
-        response.receive<ByteReadChannel>().toInputStream().use { stream ->
+        response.bodyAsChannel().toInputStream().use { stream ->
             withContext(Dispatchers.IO) {
                 @Suppress("BlockingMethodInNonBlockingContext")
                 Jsoup.parse(stream, null, url.toString())
@@ -41,7 +40,7 @@ suspend fun HttpClient.downloadFile(url: String, out: File): Boolean {
     if (out.isDirectory) return false
 
     val response = try {
-        get<HttpResponse>(url)
+        get(url)
     } catch (e: Exception) {
         return false
     }
@@ -53,7 +52,7 @@ suspend fun HttpClient.downloadFile(url: String, out: File): Boolean {
     val tmp = File(out.parent, "." + out.name)
 
     try {
-        response.content.copyAndClose(tmp.writeChannel())
+        response.bodyAsChannel().copyAndClose(tmp.writeChannel())
     } catch (e: Exception) {
         return false
     }

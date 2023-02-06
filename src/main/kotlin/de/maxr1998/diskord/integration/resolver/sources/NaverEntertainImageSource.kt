@@ -4,13 +4,14 @@ import de.maxr1998.diskord.command.dynamic.CommandEntryEntity
 import de.maxr1998.diskord.integration.resolver.ImageResolver
 import de.maxr1998.diskord.integration.resolver.ImageSource
 import de.maxr1998.diskord.util.extension.loadJsoupDocument
+import de.maxr1998.diskord.util.extension.removeParameters
 import io.ktor.client.HttpClient
 import io.ktor.http.Parameters
-import io.ktor.http.ParametersBuilder
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLParserException
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import io.ktor.http.encodedPath
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
@@ -27,8 +28,7 @@ class NaverEntertainImageSource(
         val normalizedUrl = URLBuilder(
             protocol = URLProtocol.HTTPS,
             host = NAVER_HOST,
-            encodedPath = NAVER_PATH,
-            parameters = ParametersBuilder().apply {
+            parameters = Parameters.build {
                 val matchGroups = NAVER_MOBILE_PATH_REGEX.matchEntire(url.encodedPath)?.groupValues
                 (url.parameters["oid"] ?: matchGroups?.getOrNull(1))?.let { oid ->
                     append("oid", oid)
@@ -37,7 +37,9 @@ class NaverEntertainImageSource(
                     append("aid", aid)
                 }
             },
-        ).build()
+        ).apply {
+            encodedPath = NAVER_PATH
+        }.build()
 
         val document = httpClient.loadJsoupDocument(normalizedUrl)
             ?: return ImageResolver.Status.ParsingFailed()
@@ -53,7 +55,7 @@ class NaverEntertainImageSource(
             }
 
             val imageUrl = try {
-                Url(imageSrc).copy(parameters = Parameters.Empty, trailingQuery = false)
+                Url(imageSrc).removeParameters()
             } catch (e: URLParserException) {
                 logger.error("Could not parse URL $imageSrc", e)
                 return@mapNotNull null

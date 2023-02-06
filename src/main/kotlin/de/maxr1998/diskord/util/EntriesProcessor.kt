@@ -8,9 +8,8 @@ import de.maxr1998.diskord.util.exposed.suspendingTransaction
 import de.maxr1998.diskord.util.extension.hasNotFlag
 import de.maxr1998.diskord.util.extension.toUrlOrNull
 import io.ktor.client.HttpClient
-import io.ktor.client.features.expectSuccess
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.head
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +70,7 @@ class EntriesProcessor(
             val url = entry[Entries.content].toUrlOrNull() ?: continue
 
             val response = try {
-                httpClient.head<HttpResponse>(url) {
+                httpClient.head(url) {
                     expectSuccess = false
                 }
             } catch (e: Exception) {
