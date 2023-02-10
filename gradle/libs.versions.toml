@@ -7,7 +7,7 @@ shadow = "7.1.2"
 # Libraries
 koin = "3.3.2"
 coroutines = { strictly = "1.6.4" }
-diskord = "3.0.1"
+diskord = "3.0.2"
 ktor = "2.2.3"
 exposed = "0.37.3"
 sqlitejdbc = "3.40.1.0"
