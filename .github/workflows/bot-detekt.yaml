@@ -16,11 +16,11 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@3fbe033aaae657f011f88f29be9e65ed26bd29ef # tag=v2.3.3
+        uses: gradle/gradle-build-action@6095a76664413da4c8c134ee32e8a8ae900f0f1f # v2.4.0
       - name: Run detekt task
         run: ./gradlew detekt
       - name: Upload SARIF files
-        uses: github/codeql-action/upload-sarif@8775e868027fa230df8586bdf502bbd9b618a477 # v2.2.3
+        uses: github/codeql-action/upload-sarif@17573ee1cc1b9d061760f3a006fc4aac4f944fd5 # v2.2.4
         if: ${{ always() }}
         with:
           sarif_file: .
