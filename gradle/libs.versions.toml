@@ -2,7 +2,7 @@
 # Plugins
 kotlin = "1.8.10"
 detekt = "1.22.0"
-shadow = "7.1.2"
+shadow = "8.0.0"
 
 # Libraries
 koin = "3.3.2"
