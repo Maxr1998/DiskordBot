@@ -8,7 +8,7 @@ shadow = "8.0.0"
 koin = "3.3.2"
 coroutines = { strictly = "1.6.4" }
 diskord = "3.0.2"
-ktor = "2.2.3"
+ktor = "2.2.4"
 exposed = "0.37.3"
 sqlitejdbc = "3.40.1.0"
 kotlinLogging = "3.0.5"
