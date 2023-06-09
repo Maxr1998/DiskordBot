@@ -90,7 +90,7 @@ class TwitterImageSource(
 
         return when {
             imageUrls.isNotEmpty() -> {
-                logger.debug("Resolved ${imageUrls.size} images or videos from $normalizedUrl")
+                logger.debug("Resolved {} images or videos from {}", imageUrls.size, normalizedUrl)
                 Result.success(ImageResolver.Resolved(normalizedUrl, imageUrls))
             }
             else -> {

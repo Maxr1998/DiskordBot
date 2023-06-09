@@ -52,7 +52,6 @@ dependencies {
     implementation(libs.bundles.logging)
     testImplementation(libs.bundles.kotest)
 
-
     // Auto formatting with detekt
     detektPlugins(libs.detekt.formatting)
 }
@@ -70,7 +69,6 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = JavaVersion.VERSION_17.toString()
-            @Suppress("SuspiciousCollectionReassignment")
             freeCompilerArgs = listOf("-opt-in=kotlin.RequiresOptIn")
         }
     }
