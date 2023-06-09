@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
  */
 class DynamicCommandsModule : BotBase.BotModule {
 
-    override suspend fun register(dispatcher: EventDispatcher<Unit>, context: BotContext, configuring: Boolean) {
+    override suspend fun register(dispatcher: EventDispatcher, context: BotContext, configuring: Boolean) {
         dispatcher.onMessageCreate { message ->
             context.handleMessage(message)
         }

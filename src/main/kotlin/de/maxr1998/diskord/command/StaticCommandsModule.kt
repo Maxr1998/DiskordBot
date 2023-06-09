@@ -58,7 +58,7 @@ internal class StaticCommandsModule(
     private val guildPrefix: GuildPrefix,
     private val handlers: Map<String, CommandHandler>,
 ) : BotBase.BotModule {
-    override suspend fun register(dispatcher: EventDispatcher<Unit>, context: BotContext, configuring: Boolean) {
+    override suspend fun register(dispatcher: EventDispatcher, context: BotContext, configuring: Boolean) {
         dispatcher.onMessageCreate { message ->
             val prefix = guildPrefix.getPrefix(message.guildId)
 
