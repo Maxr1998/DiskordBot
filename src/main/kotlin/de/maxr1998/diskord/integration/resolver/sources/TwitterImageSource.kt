@@ -100,6 +100,10 @@ class TwitterImageSource(
             protocol = URLProtocol.HTTPS,
             host = TWITTER_API_HOST,
             pathSegments = listOf("1.1", "statuses", "show", id),
+            parameters = ParametersBuilder().apply {
+                append("include_entities", "false")
+                append("tweet_mode", "extended")
+            }.build(),
         ).build()
 
         return httpClient.get(tweetApiUrl) {
