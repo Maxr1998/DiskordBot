@@ -9,6 +9,8 @@ data class Config(
     val botToken: String,
     @SerialName("twitter_token")
     val twitterToken: String,
+    @SerialName("twitter_api_version")
+    val twitterApiVersion: Int,
     @SerialName("imgur_client_id")
     val imgurClientId: String,
     @SerialName("instagrapi_url")

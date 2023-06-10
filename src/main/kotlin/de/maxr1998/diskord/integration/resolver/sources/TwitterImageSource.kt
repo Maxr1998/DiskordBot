@@ -43,20 +43,15 @@ class TwitterImageSource(
             return ImageResolver.Status.Unknown()
         }
 
-        val tweetApiUrl = URLBuilder(
-            protocol = URLProtocol.HTTPS,
-            host = TWITTER_API_HOST,
-            pathSegments = listOf("2", "tweets", id),
-            parameters = ParametersBuilder().apply {
-                append("expansions", "attachments.media_keys")
-                append("media.fields", "type,url,width,height")
-            }.build(),
-        ).build()
-
         val tweet = try {
-            httpClient.get(tweetApiUrl) {
-                header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
-            }.body<TwitterApi.Tweet>()
+            when (config.twitterApiVersion) {
+                1 -> resolveTweetV1_1(id)
+                2 -> resolveTweetV2(id)
+                else -> {
+                    logger.warn("Unsupported Twitter API version {}", config.twitterApiVersion)
+                    return ImageResolver.Status.Unsupported()
+                }
+            }
         } catch (e: SerializationException) {
             logger.error("Failed to parse Twitter API response", e)
             return ImageResolver.Status.ParsingFailed()
@@ -65,25 +60,24 @@ class TwitterImageSource(
             return ImageResolver.Status.Unknown()
         }
 
-        if (tweet.includes == null) {
-            logger.warn("Twitter API returned no includes for $normalizedUrl")
+        val mediaContainer = tweet.mediaContainer
+
+        if (mediaContainer == null) {
+            logger.warn("Twitter API returned no includes/extensions for $normalizedUrl")
             return ImageResolver.Status.Unknown()
         }
 
-        val imageUrls = tweet.includes.media.mapNotNull { mediaItem ->
+        val imageUrls = mediaContainer.media.mapNotNull { mediaItem ->
             when (mediaItem.type) {
-                TwitterApi.MediaObject.TYPE_PHOTO -> when {
-                    mediaItem.url != null -> {
-                        CommandEntryEntity.image(
-                            url = UrlNormalizer.normalizeUrls(mediaItem.url),
-                            source = normalizedUrl,
-                            width = mediaItem.width,
-                            height = mediaItem.height,
-                        )
-                    }
-                    else -> null
+                TwitterApi.Tweet.MediaContainer.MediaObject.TYPE_PHOTO -> mediaItem.url?.let { mediaUrl ->
+                    CommandEntryEntity.image(
+                        url = UrlNormalizer.normalizeUrls(mediaUrl),
+                        source = normalizedUrl,
+                        width = mediaItem.width,
+                        height = mediaItem.height,
+                    )
                 }
-                TwitterApi.MediaObject.TYPE_VIDEO -> resolveVideo(normalizedUrl)
+                TwitterApi.Tweet.MediaContainer.MediaObject.TYPE_VIDEO -> resolveVideo(normalizedUrl)
                 else -> null
             }
         }
@@ -98,6 +92,35 @@ class TwitterImageSource(
                 ImageResolver.Status.Unknown()
             }
         }
+    }
+
+    @Suppress("FunctionName")
+    private suspend inline fun resolveTweetV1_1(id: String): TwitterApi.Tweet {
+        val tweetApiUrl = URLBuilder(
+            protocol = URLProtocol.HTTPS,
+            host = TWITTER_API_HOST,
+            pathSegments = listOf("1.1", "statuses", "show", id),
+        ).build()
+
+        return httpClient.get(tweetApiUrl) {
+            header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
+        }.body<TwitterApi.TweetV1_1>()
+    }
+
+    private suspend inline fun resolveTweetV2(id: String): TwitterApi.Tweet {
+        val tweetApiUrl = URLBuilder(
+            protocol = URLProtocol.HTTPS,
+            host = TWITTER_API_HOST,
+            pathSegments = listOf("2", "tweets", id),
+            parameters = ParametersBuilder().apply {
+                append("expansions", "attachments.media_keys")
+                append("media.fields", "type,url,width,height")
+            }.build(),
+        ).build()
+
+        return httpClient.get(tweetApiUrl) {
+            header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
+        }.body<TwitterApi.TweetV2>()
     }
 
     /**
