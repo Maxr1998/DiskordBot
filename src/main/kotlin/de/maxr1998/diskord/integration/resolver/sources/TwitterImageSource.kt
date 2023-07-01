@@ -34,6 +34,7 @@ class TwitterImageSource(
     override fun supports(url: Url): Boolean =
         url.host.matches(TWITTER_HOST_REGEX) && url.encodedPath.matches(TWITTER_STATUS_PATH_REGEX)
 
+    @Suppress("CyclomaticComplexMethod")
     override suspend fun resolve(url: Url): Result<ImageResolver.Resolved> {
         val normalizedUrl = url.cleanedCopy(host = TWITTER_HOST)
         val id = TWITTER_STATUS_PATH_REGEX.matchEntire(normalizedUrl.encodedPath)?.groupValues?.getOrNull(1)
@@ -47,6 +48,7 @@ class TwitterImageSource(
             when (config.twitterApiVersion) {
                 1 -> resolveTweetV1_1(id)
                 2 -> resolveTweetV2(id)
+                0 -> resolveTweetEmbed(id)
                 else -> {
                     logger.warn("Unsupported Twitter API version {}", config.twitterApiVersion)
                     return ImageResolver.Status.Unsupported()
@@ -125,6 +127,24 @@ class TwitterImageSource(
         return httpClient.get(tweetApiUrl) {
             header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
         }.body<TwitterApi.TweetV2>()
+    }
+
+    private suspend inline fun resolveTweetEmbed(id: String): TwitterApi.Tweet {
+        val tweetApiUrl = URLBuilder(
+            protocol = URLProtocol.HTTPS,
+            host = "cdn.syndication.twimg.com",
+            pathSegments = listOf("tweet-result"),
+            parameters = ParametersBuilder().apply {
+                append("id", id)
+                append("lang", "en")
+            }.build(),
+        ).build()
+
+        val embed = httpClient.get(tweetApiUrl) {
+            header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
+        }.body<TwitterApi.TweetEmbed.TweetEmbedMedia>()
+
+        return TwitterApi.TweetEmbed(embed)
     }
 
     /**
