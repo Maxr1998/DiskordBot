@@ -279,6 +279,5 @@ object DynamicCommandRepository {
         ALL_VISIBLE,
         GLOBAL_ONLY,
         HIDDEN,
-        ;
     }
 }

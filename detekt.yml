@@ -17,6 +17,8 @@ exceptions:
     active: false
 
 formatting:
+  CommentWrapping:
+    active: false
   FinalNewline:
     insertFinalNewLine: false
   MaximumLineLength:
