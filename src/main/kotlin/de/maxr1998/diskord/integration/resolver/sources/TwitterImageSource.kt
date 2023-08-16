@@ -137,14 +137,31 @@ class TwitterImageSource(
             parameters = ParametersBuilder().apply {
                 append("id", id)
                 append("lang", "en")
+                append("token", generatedEmbedToken(id))
             }.build(),
         ).build()
 
-        val embed = httpClient.get(tweetApiUrl) {
-            header(HttpHeaders.Authorization, "${AuthScheme.Bearer} ${config.twitterToken}")
-        }.body<TwitterApi.TweetEmbed.TweetEmbedMedia>()
+        val embed = httpClient.get(tweetApiUrl).body<TwitterApi.TweetEmbed.TweetEmbedMedia>()
 
         return TwitterApi.TweetEmbed(embed)
+    }
+
+    @Suppress("MagicNumber")
+    private fun generatedEmbedToken(tweetId: String): String {
+        val tokenDouble = tweetId.toDouble() / 1e15 * Math.PI
+
+        val tokenInt = tokenDouble.toInt()
+        var fraction = tokenDouble - tokenInt
+
+        var token = tokenInt.toString(EMBED_TOKEN_RADIX)
+        while (token.length < EMBED_TOKEN_LENGTH) {
+            fraction *= EMBED_TOKEN_RADIX
+            val digit = fraction.toInt()
+            fraction -= digit
+            token += digit.toString(EMBED_TOKEN_RADIX)
+        }
+
+        return token
     }
 
     /**
@@ -174,5 +191,12 @@ class TwitterImageSource(
         private const val FXTWITTER_HOST = "d.fxtwitter.com"
         private val TWITTER_HOST_REGEX = Regex("""(?:(?:www|mobile)\.)?twitter\.com""")
         private val TWITTER_STATUS_PATH_REGEX = Regex("""/[A-Za-z_\d]+/status/([\d]+)""")
+        private const val EMBED_TOKEN_RADIX = 36
+
+        /**
+         * The length is usually specified by the double precision in JavaScript,
+         * but as it's not verified anyway we can just use a fixed length.
+         */
+        private const val EMBED_TOKEN_LENGTH = 10
     }
 }
