@@ -189,7 +189,7 @@ class TwitterImageSource(
         private const val TWITTER_HOST = "twitter.com"
         private const val TWITTER_API_HOST = "api.twitter.com"
         private const val FXTWITTER_HOST = "d.fxtwitter.com"
-        private val TWITTER_HOST_REGEX = Regex("""(?:(?:www|mobile)\.)?twitter\.com""")
+        private val TWITTER_HOST_REGEX = Regex("""(?:(?:www|mobile)\.)?(?:twitter|x)\.com""")
         private val TWITTER_STATUS_PATH_REGEX = Regex("""/[A-Za-z_\d]+/status/([\d]+)""")
         private const val EMBED_TOKEN_RADIX = 36
 
