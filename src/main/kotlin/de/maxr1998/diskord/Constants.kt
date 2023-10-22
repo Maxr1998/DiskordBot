@@ -11,8 +11,5 @@ object Constants {
     const val GUILDS_QUERY_LIMIT = 200
     const val MAX_MESSAGE_LENGTH = 2000
 
-    const val MIN_IMAGE_SIZE = 640
-    const val MIN_VIDEO_SIZE = 360
-
     const val MAX_PREVIEW_IMAGES = 5
 }

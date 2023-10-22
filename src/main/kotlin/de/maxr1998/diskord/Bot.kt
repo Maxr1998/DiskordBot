@@ -3,7 +3,6 @@ package de.maxr1998.diskord
 import com.jessecorbett.diskord.AutoGateway
 import com.jessecorbett.diskord.api.channel.ChannelClient
 import com.jessecorbett.diskord.api.channel.MessageEdit
-import com.jessecorbett.diskord.api.common.Attachment
 import com.jessecorbett.diskord.api.common.Message
 import com.jessecorbett.diskord.api.common.User
 import com.jessecorbett.diskord.api.common.UserStatus
@@ -60,18 +59,14 @@ import de.maxr1998.diskord.util.diskord.isOwner
 import de.maxr1998.diskord.util.extension.args
 import de.maxr1998.diskord.util.extension.getAckEmoji
 import de.maxr1998.diskord.util.extension.getRepliedMessage
-import de.maxr1998.diskord.util.extension.getUrl
 import de.maxr1998.diskord.util.extension.getUser
-import de.maxr1998.diskord.util.extension.parsedContentType
 import de.maxr1998.diskord.util.extension.toUrlOrNull
 import de.maxr1998.diskord.util.logAdd
 import de.maxr1998.diskord.util.logRemove
 import de.maxr1998.diskord.util.validateCommand
-import io.ktor.http.ContentType
 import io.ktor.http.Url
 import mu.KotlinLogging
 import org.koin.core.component.inject
-import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -479,55 +474,12 @@ class Bot : BaseBot() {
                     CommandEntryEntity.tryUrl(normalizedUrl, null)
                 }
             }
-            is ExtractionResult.Attachments -> {
-                val attachments = extractionResult.content
-
-                val entries = attachments.mapNotNull { attachment ->
-                    val url = UrlNormalizer.normalizeUrls(attachment.url)
-                    val contentType = attachment.parsedContentType
-                    val width = attachment.imageWidth
-                    val height = attachment.imageHeight
-
-                    if (width == null || height == null || contentType == null) {
-                        return@mapNotNull CommandEntryEntity.tryUrl(url, message.getUrl())
-                    }
-
-                    val minSize = min(width, height)
-
-                    when {
-                        contentType.match(ContentType.Image.GIF) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE ->
-                                CommandEntryEntity.gif(url, message.getUrl(), width, height)
-                            else -> null
-                        }
-                        contentType.match(ContentType.Image.Any) -> when {
-                            minSize >= Constants.MIN_IMAGE_SIZE ->
-                                CommandEntryEntity.image(url, message.getUrl(), width, height)
-                            else -> null
-                        }
-                        contentType.match(ContentType.Video.Any) -> when {
-                            minSize >= Constants.MIN_VIDEO_SIZE ->
-                                CommandEntryEntity.video(url, message.getUrl(), width, height)
-                            else -> null
-                        }
-                        else -> null
-                    }
-                }
-
-                val diff = attachments.size - entries.size
-                if (diff > 0) {
-                    message.respond(
-                        "$diff of ${attachments.size} attachments weren't added " +
-                            "as they didn't fulfill the minimum resolution requirements:\n" +
-                            "\u2022 Images: ${Constants.MIN_IMAGE_SIZE}x${Constants.MIN_IMAGE_SIZE} pixels\n" +
-                            "\u2022 Videos: ${Constants.MIN_VIDEO_SIZE}x${Constants.MIN_VIDEO_SIZE} pixels",
-                    )
-
-                    // Abort if empty
-                    if (entries.isEmpty()) return
-                }
-
-                entries
+            is ExtractionResult.UnsupportedAttachments -> {
+                message.respond(
+                    "Adding content from attachments is not supported anymore.\n" +
+                        "This is due to Discord enforcing authentication on uploaded files starting in late 2023.",
+                )
+                return
             }
         }
 
@@ -576,7 +528,7 @@ class Bot : BaseBot() {
             }
             is ExtractionResult.Raw -> listOf(extractionResult.content)
             is ExtractionResult.Lines -> extractionResult.content
-            is ExtractionResult.Attachments -> extractionResult.content.map(Attachment::url)
+            is ExtractionResult.UnsupportedAttachments -> return
         }
 
         // Normalize URLs
@@ -641,7 +593,7 @@ class Bot : BaseBot() {
             }
             is ExtractionResult.Raw -> listOf(extractionResult.content)
             is ExtractionResult.Lines -> extractionResult.content
-            is ExtractionResult.Attachments -> {
+            is ExtractionResult.UnsupportedAttachments -> {
                 message.channel.showHelp(SET_SOURCE)
                 return
             }

@@ -45,16 +45,6 @@ data class CommandEntryEntity(
             flags = 0,
         )
 
-        fun gif(url: String, source: Url?, width: Int = 0, height: Int = 0) = CommandEntryEntity(
-            id = null,
-            content = url,
-            contentSource = source?.toString(),
-            type = EntryType.GIF,
-            width = width,
-            height = height,
-            flags = 0,
-        )
-
         fun video(url: String, source: Url?, width: Int = 0, height: Int = 0) = CommandEntryEntity(
             id = null,
             content = url,
