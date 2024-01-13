@@ -459,6 +459,8 @@ class Bot : BaseBot() {
                                     "Rate-limit exceeded for <$url>, please try again later."
                                 ImageResolver.Status.ParsingFailed ->
                                     "Parsing of <$url> failed, please contact the developer."
+                                ImageResolver.Status.AgeRestricted ->
+                                    "Content from <$url> is age-restricted and can't be queried."
                                 ImageResolver.Status.Unknown ->
                                     "Couldn't process <$url>.\nPlease ensure your query is correct."
                             }
@@ -655,6 +657,7 @@ class Bot : BaseBot() {
                 ImageResolver.Status.Forbidden -> "Insufficient permissions to use this feature."
                 ImageResolver.Status.RateLimited -> "Rate-limit exceeded, please try again later."
                 ImageResolver.Status.ParsingFailed -> "Parsing failed, please contact the developer."
+                ImageResolver.Status.AgeRestricted -> "Content is age-restricted and can't be queried."
                 ImageResolver.Status.Unknown -> "Couldn't process content, please ensure your query is correct."
             }
             message.respond(errorText)

@@ -1,7 +1,10 @@
 package de.maxr1998.diskord.integration.resolver.sources
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import kotlinx.serialization.json.JsonClassDiscriminator
 
 object TwitterApi {
     const val TWITTER_IMAGE_BASE_URL = "https://pbs.twimg.com/media/"
@@ -28,11 +31,32 @@ object TwitterApi {
     }
 
     @Serializable
+    @OptIn(ExperimentalSerializationApi::class)
+    @JsonClassDiscriminator("__typename")
+    sealed class TweetEmbedResponse
+
+    @Serializable
+    @SerialName("Tweet")
     data class TweetEmbed(
         @SerialName("mediaDetails")
         override val media: List<TweetV1_1.ExtendedEntities.MediaObject> = emptyList(),
-    ) : Tweet, Tweet.MediaContainer {
+    ) : TweetEmbedResponse(), Tweet, Tweet.MediaContainer {
+        @Transient
         override val mediaContainer: Tweet.MediaContainer = this
+    }
+
+    @Serializable
+    @SerialName("TweetTombstone")
+    data class TweetTombstone(
+        val tombstone: Tombstone,
+    ) : TweetEmbedResponse() {
+        val text: String get() = tombstone.text.text
+
+        @Serializable
+        class Tombstone(val text: Text) {
+            @Serializable
+            class Text(val text: String)
+        }
     }
 
     @Suppress("ClassName")

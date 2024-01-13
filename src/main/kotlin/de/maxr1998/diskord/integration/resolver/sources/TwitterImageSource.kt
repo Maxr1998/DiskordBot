@@ -48,7 +48,9 @@ class TwitterImageSource(
             when (config.twitterApiVersion) {
                 1 -> resolveTweetV1_1(id)
                 2 -> resolveTweetV2(id)
-                0 -> resolveTweetEmbed(id)
+                0 -> resolveTweetEmbed(id).getOrElse { failure ->
+                    return Result.failure(failure as ImageResolver.Status)
+                }
                 else -> {
                     logger.warn("Unsupported Twitter API version {}", config.twitterApiVersion)
                     return ImageResolver.Status.Unsupported()
@@ -129,7 +131,7 @@ class TwitterImageSource(
         }.body<TwitterApi.TweetV2>()
     }
 
-    private suspend inline fun resolveTweetEmbed(id: String): TwitterApi.Tweet {
+    private suspend inline fun resolveTweetEmbed(id: String): Result<TwitterApi.Tweet> {
         val tweetApiUrl = URLBuilder(
             protocol = URLProtocol.HTTPS,
             host = "cdn.syndication.twimg.com",
@@ -141,7 +143,18 @@ class TwitterImageSource(
             }.build(),
         ).build()
 
-        return httpClient.get(tweetApiUrl).body<TwitterApi.TweetEmbed>()
+        return when (val response = httpClient.get(tweetApiUrl).body<TwitterApi.TweetEmbedResponse>()) {
+            is TwitterApi.TweetEmbed -> Result.success(response)
+            is TwitterApi.TweetTombstone -> {
+                if (response.text.startsWith("Age-restricted adult content.")) {
+                    logger.warn("Twitter returned age-restricted content for $tweetApiUrl")
+                    return ImageResolver.Status.AgeRestricted()
+                } else {
+                    logger.warn("Twitter returned tombstone \"{}\" for {}", response.text, tweetApiUrl)
+                    return ImageResolver.Status.Unknown()
+                }
+            }
+        }
     }
 
     @Suppress("MagicNumber")

@@ -29,6 +29,7 @@ class ImageResolver(
         data object Forbidden : Failure()
         data object RateLimited : Failure()
         data object ParsingFailed : Failure()
+        data object AgeRestricted : Failure()
         data object Unknown : Failure()
 
         operator fun <T> invoke() = Result.failure<T>(this)
