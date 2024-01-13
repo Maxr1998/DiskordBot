@@ -37,7 +37,7 @@ suspend fun FieldSet.processBatches(
 
         if (batch.size < batchSize) break
 
-        lastOffset = toLong(batch.last()[autoIncColumn]!!)
+        lastOffset = toLong(checkNotNull(batch.last()[autoIncColumn]) { "Batch element autoIncColumn is null" })
     }
 }
 

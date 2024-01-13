@@ -50,13 +50,13 @@ class WeiboImageSource(
             val renderDataString = body.substring(startIndex, endIndex)
             val renderData: JsonObject = json.parseToJsonElement(renderDataString).jsonObject
 
-            val status = renderData["status"]!!.jsonObject
-            val picIds = status["pic_ids"]!!.jsonArray.map { element -> element.jsonPrimitive.content }
+            val status = requireNotNull(renderData["status"]).jsonObject
+            val picIds = requireNotNull(status["pic_ids"]).jsonArray.map { element -> element.jsonPrimitive.content }
             picIds.map { id ->
                 val imageUrl = "https://wx4.sinaimg.cn/original/$id.jpg"
                 CommandEntryEntity.image(imageUrl, normalizedUrl)
             }
-        } catch (e: NullPointerException) {
+        } catch (e: IllegalArgumentException) {
             logger.error("Couldn't parse response")
             return ImageResolver.Status.ParsingFailed()
         } catch (e: Exception) {
