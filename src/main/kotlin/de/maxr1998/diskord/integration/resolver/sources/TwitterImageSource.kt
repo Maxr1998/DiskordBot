@@ -141,9 +141,7 @@ class TwitterImageSource(
             }.build(),
         ).build()
 
-        val embed = httpClient.get(tweetApiUrl).body<TwitterApi.TweetEmbed.TweetEmbedMedia>()
-
-        return TwitterApi.TweetEmbed(embed)
+        return httpClient.get(tweetApiUrl).body<TwitterApi.TweetEmbed>()
     }
 
     @Suppress("MagicNumber")

@@ -27,15 +27,12 @@ object TwitterApi {
         }
     }
 
+    @Serializable
     data class TweetEmbed(
-        override val mediaContainer: TweetEmbedMedia,
-    ) : Tweet {
-
-        @Serializable
-        data class TweetEmbedMedia(
-            @SerialName("mediaDetails")
-            override val media: List<TweetV1_1.ExtendedEntities.MediaObject> = emptyList(),
-        ) : Tweet.MediaContainer
+        @SerialName("mediaDetails")
+        override val media: List<TweetV1_1.ExtendedEntities.MediaObject> = emptyList(),
+    ) : Tweet, Tweet.MediaContainer {
+        override val mediaContainer: Tweet.MediaContainer = this
     }
 
     @Suppress("ClassName")
