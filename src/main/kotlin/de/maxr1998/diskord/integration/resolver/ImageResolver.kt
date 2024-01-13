@@ -24,12 +24,12 @@ class ImageResolver(
     )
 
     sealed class Status : Exception() {
-        object Unsupported : Status()
+        data object Unsupported : Status()
         sealed class Failure : Status()
-        object Forbidden : Failure()
-        object RateLimited : Failure()
-        object ParsingFailed : Failure()
-        object Unknown : Failure()
+        data object Forbidden : Failure()
+        data object RateLimited : Failure()
+        data object ParsingFailed : Failure()
+        data object Unknown : Failure()
 
         operator fun <T> invoke() = Result.failure<T>(this)
     }
