@@ -1,12 +1,12 @@
 [versions]
 # Plugins
-kotlin = "1.9.10"
+kotlin = "1.9.24"
 detekt = "1.23.0"
 shadow = "8.1.1"
 
 # Libraries
 koin = "3.5.6"
-coroutines = { strictly = "1.7.3" }
+coroutines = { strictly = "1.8.1" }
 diskord = "5.4.0"
 ktor = "2.3.12"
 exposed = "0.37.3"
