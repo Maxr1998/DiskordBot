@@ -1,7 +1,7 @@
 [versions]
 # Plugins
 kotlin = "1.9.24"
-detekt = "1.23.0"
+detekt = "1.23.7"
 shadow = "8.1.1"
 
 # Libraries
