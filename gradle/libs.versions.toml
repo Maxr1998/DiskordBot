@@ -1,6 +1,6 @@
 [versions]
 # Plugins
-kotlin = "1.9.24"
+kotlin = "2.0.21"
 detekt = "1.23.0"
 shadow = "8.1.1"
 
